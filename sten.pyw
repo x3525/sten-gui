@@ -898,7 +898,7 @@ region.grid_rowconfigure(index=2, weight=0)
 region.grid_rowconfigure(index=3, weight=1)
 region.grid_columnconfigure(index=0, weight=0)
 region.grid_columnconfigure(index=1, weight=1)
-region.pack_configure(expand=True, fill=tk.BOTH, side=tk.LEFT)
+region.pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
 
 #################
 # Region (0, 0) #
