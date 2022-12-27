@@ -328,7 +328,7 @@ def t_decode() -> None:
 
 
 def decode(event: tk.Event) -> None:
-    """Extract a hidden message from the stego-object."""
+    """Extract a hidden message from a stego-object."""
     try:
         cipher = crypto.ciphers[box_ciphers.get()](ent_key.get())
     except ValueError as err:
