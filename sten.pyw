@@ -875,6 +875,12 @@ menu_help.add_command(
     underline=10,
 )
 menu_help.add_command(
+    command=lambda: webbrowser.open_new_tab(URL_CHANGELOG),
+    label='Changelog...',
+    state=tk.NORMAL,
+    underline=6,
+)
+menu_help.add_command(
     command=lambda: showinfo(title='About Sten', message=__doc__),
     compound=tk.LEFT,
     image=ICON_ABOUT,
