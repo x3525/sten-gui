@@ -569,6 +569,7 @@ def refresh(event: tk.Event) -> None:
             widget['fg'] = RED if (widget.get() > 3) else BLACK
         # Fix n-LSB
         else:
+            widget['fg'] = BLACK
             widget.set(1)
             band_lsb = {list(band_scl.values()).index(widget): 1}
 
