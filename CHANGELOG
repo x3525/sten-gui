@@ -1,0 +1,14 @@
+#######################
+# History of the Sten #
+#######################
+
+0.2
+31 December 2022
+----
+* ccabcaa2559b1a051b5dfe43baa720ac0b6a7ff6: Added a menu item that opens the changelog web page.
+* 4d91a090b3d879c1a7c817d289c41afa312bf95d: Fixed showing LSB warning when not needed.
+
+0.1
+23 December 2022
+----
+* 7a0c8ae8704bac6a579796475052c180d4bcbbc4: First release.
