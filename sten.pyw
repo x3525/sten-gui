@@ -155,13 +155,13 @@ def open_(event: tk.Event) -> Optional[str]:
         # Important! After all error checks are passed, set attributes here!
         Picture.pixel = pixel
         Picture.imagedata = np.array(imagedata)
-        Picture.dimensions = width, height = dimensions
+        Picture.dimensions = (width, height) = dimensions
         Picture.mode = mode
 
         Picture.filename = os.path.basename(filename)
         Picture.extension = extension
 
-        ch_capacity = Picture.pixel * len(band_scl) - len(DELIMITER)
+        ch_capacity = (Picture.pixel * len(band_scl)) - len(DELIMITER)
 
         Picture.properties = [
             f'Capacity: {ch_capacity} characters',
