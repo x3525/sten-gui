@@ -54,9 +54,8 @@ from numpy.typing import NDArray
 import crypto
 import data64
 from config import (
-    CIPHER_KEY_MASK,
     CONFIRM_EXIT,
-    PRNG_SEED_MASK,
+    KEY_MASK,
 )
 from consts import *
 from version import __version__
@@ -1094,7 +1093,7 @@ ent_rng = tk.Entry(
     bg=WHITE,
     fg=BLACK,
     relief=tk.FLAT,
-    show=PRNG_SEED_MASK,
+    show=KEY_MASK,
     state=tk.DISABLED,
 )
 ent_rng.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')  # No paste
@@ -1150,7 +1149,7 @@ ent_key = tk.Entry(
     bg=WHITE,
     fg=BLACK,
     relief=tk.FLAT,
-    show=CIPHER_KEY_MASK,
+    show=KEY_MASK,
     state=tk.DISABLED,
     validate='key',
     validatecommand=name_vcmd[box_ciphers.get()],
