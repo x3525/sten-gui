@@ -458,6 +458,12 @@ def toggle_transparent() -> None:
     root.wm_attributes('-alpha', 1.5 - alpha)
 
 
+def toggle_show_secrets() -> None:
+    """Toggle 'Show Secrets' state."""
+    for entry in ALL_ENTRY_WITH_SECRET:
+        entry['show'] = '' if (entry['show'] != '') else KEY_MASK
+
+
 def check_for_updates() -> None:
     """Check for the application updates."""
     try:
@@ -629,6 +635,11 @@ try:
     )
 except PermissionError as ex:
     showwarning(title='Log', message=str(ex))
+
+#######
+# ALL #
+#######
+ALL_ENTRY_WITH_SECRET = []
 
 ###############
 # Window Root #
@@ -850,6 +861,13 @@ menu_win.add_checkbutton(
     label='Transparent',
     state=tk.NORMAL,
     underline=0,
+)
+menu_win.add_separator()
+menu_win.add_checkbutton(
+    command=toggle_show_secrets,
+    label='Show Secrets',
+    state=tk.NORMAL,
+    underline=5,
 )
 
 #############
@@ -1102,6 +1120,8 @@ ent_rng.pack_configure(
 )
 Hovertip(ent_rng, text='Pseudo-random number generator seed.', hover_delay=750)
 
+ALL_ENTRY_WITH_SECRET.append(ent_rng)
+
 #################
 # Region (2, 0) #
 #################
@@ -1159,6 +1179,8 @@ ent_key.pack_configure(
     expand=True, fill=tk.BOTH, ipady=10.0, side=tk.TOP, padx=PAD_X, pady=PAD_Y
 )
 Hovertip(ent_key, text='Cipher key.', hover_delay=750)
+
+ALL_ENTRY_WITH_SECRET.append(ent_key)
 
 #################
 # Region (3, 0) #
