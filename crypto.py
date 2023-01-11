@@ -73,6 +73,12 @@ class _NotACipher(_Cipher):
     name = ''
     code = ('%d', '%S')
 
+    def __init__(self, key: str, text: str = '') -> None:
+        """Prepare the given cipher key."""
+        super().__init__(text)
+
+        self._key = key
+
     @staticmethod
     def validate(action: _TVCMDCode, data: _TVCMDCode) -> bool:
         """Validate command."""
