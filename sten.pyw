@@ -239,13 +239,13 @@ def encode(event: tk.Event) -> None:
             detail=f'Delimiter: {DELIMITER}',
         )
 
-    cp_name, key = box_ciphers.get(), ent_key.get()
+    cr_name, key = box_ciphers.get(), ent_key.get()
 
-    if (not key) and cp_name:
+    if (not key) and cr_name:
         return
 
     try:
-        cipher = crypto.ciphers[cp_name](key)
+        cipher = crypto.ciphers[cr_name](key)
     except ValueError as err:
         showerror(title='Encode', message=str(err))
         return
@@ -336,13 +336,13 @@ def t_decode() -> None:
 
 def decode(event: tk.Event) -> None:
     """Extract a hidden message from a stego-object."""
-    cp_name, key = box_ciphers.get(), ent_key.get()
+    cr_name, key = box_ciphers.get(), ent_key.get()
 
-    if (not key) and cp_name:
+    if (not key) and cr_name:
         return
 
     try:
-        cipher = crypto.ciphers[cp_name](key)
+        cipher = crypto.ciphers[cr_name](key)
     except ValueError as err:
         showerror(title='Decode', message=str(err))
         return
@@ -543,20 +543,20 @@ def refresh(event: tk.Event) -> None:
     """The ultimate refresh function, aka F5."""
     widget = event.widget
 
-    cp_name = box_ciphers.get()
+    cr_name = box_ciphers.get()
 
     if widget is not box_ciphers:
         pass
     else:
         ent_key.delete('0', tk.END)
-        ent_key['vcmd'] = name_vcmd[cp_name]  # Update validate command
+        ent_key['vcmd'] = name_vcmd[cr_name]  # Update validate command
 
     message = stx_message.get('1.0', tk.END)[:-1]
 
     key = ent_key.get()
 
     # Activate/deactivate encode/decode features
-    if (not key) and cp_name:
+    if (not key) and cr_name:
         root.unbind(VIRTUAL_EVENT_ENCODE)
         root.unbind(VIRTUAL_EVENT_DECODE)
         menu_file.entryconfigure(MENU_ITEM_INDEX_ENCODE, state=tk.DISABLED)
