@@ -53,6 +53,7 @@ from numpy.typing import NDArray
 
 import crypto
 import data64
+import utils
 from config import (
     CONFIRM_EXIT,
     KEY_MASK,
@@ -110,7 +111,7 @@ def open_(event: tk.Event) -> Optional[str]:
         if not file:
             break
 
-        filename, extension = os.path.splitext(file)
+        filename, extension = utils.splitext(file)
 
         if extension.casefold() not in EXTENSIONS_PICTURE:
             retry = askretrycancel(
@@ -260,7 +261,7 @@ def encode(event: tk.Event) -> None:
     if not output:
         return
 
-    _, extension = os.path.splitext(output)
+    _, extension = utils.splitext(output)
 
     if extension.casefold() not in EXTENSIONS_PICTURE:
         showerror(
@@ -357,7 +358,7 @@ def decode(event: tk.Event) -> None:
     if not output:
         return
 
-    _, extension = os.path.splitext(output)
+    _, extension = utils.splitext(output)
 
     if extension.casefold() not in EXTENSIONS_MESSAGE:
         showerror(
