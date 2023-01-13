@@ -59,6 +59,7 @@ from config import (
     KEY_MASK,
 )
 from consts import *
+from error import CryptoExceptionGroup
 from version import __version__
 
 # Turn matching warnings into exceptions
@@ -247,7 +248,7 @@ def encode(event: tk.Event) -> None:
 
     try:
         cipher = crypto.ciphers[cr_name](key)
-    except ValueError as err:
+    except CryptoExceptionGroup as err:
         showerror(title='Encode', message=str(err))
         return
 
@@ -344,7 +345,7 @@ def decode(event: tk.Event) -> None:
 
     try:
         cipher = crypto.ciphers[cr_name](key)
-    except ValueError as err:
+    except CryptoExceptionGroup as err:
         showerror(title='Decode', message=str(err))
         return
 

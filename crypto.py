@@ -11,6 +11,12 @@ from typing import Dict, Literal, Tuple, Type
 import numpy as np
 from numpy.typing import NDArray
 
+from error import (
+    MatrixNotInvertibleException,
+    NotCoPrimeException,
+    ZeroShiftException,
+)
+
 _ALPHABET = string.printable
 _ALPHABET_LEN = len(_ALPHABET)
 
@@ -106,7 +112,7 @@ class _Caesar(_Cipher):
         self._key = int(key)
 
         if (self._key % _ALPHABET_LEN) == 0:
-            raise ValueError('Key error. Shift value is equal to 0.')
+            raise ZeroShiftException('Key error. Shift value is equal to 0.')
 
     @staticmethod
     def validate(action: _TVCMDCode, data: _TVCMDCode) -> bool:
@@ -155,9 +161,9 @@ class _Hill(_Cipher):
         determinant = round(np.linalg.det(self._key))
 
         if determinant == 0:
-            raise ValueError('Key matrix is not invertible.')
+            raise MatrixNotInvertibleException('Key matrix is not invertible.')
         if math.gcd(determinant, _ALPHABET_LEN) != 1:
-            raise ValueError(
+            raise NotCoPrimeException(
                 'Key determinant and alphabet length are not co-prime.'
             )
 
