@@ -487,6 +487,15 @@ def toggle_show_secrets() -> None:
         entry['show'] = '' if (entry['show'] != '') else KEY_MASK
 
 
+def reset() -> None:
+    """Reset window."""
+    if ZOOMED_MODE == '1':
+        root.wm_state('zoomed')
+    else:
+        root.wm_state(tk.NORMAL)
+    root.wm_geometry(GEOMETRY)
+
+
 def check_for_updates() -> None:
     """Check for the application updates."""
     try:
@@ -694,7 +703,9 @@ CENTER_Y = (SCREEN_H // 2) - (WINDOW_H // 2)
 
 root.wm_resizable(width=True, height=True)
 root.wm_minsize(width=(WINDOW_W // 2), height=WINDOW_H)
-root.wm_geometry(f'{WINDOW_W}x{WINDOW_H}-{CENTER_X}-{CENTER_Y}')
+
+GEOMETRY = f'{WINDOW_W}x{WINDOW_H}-{CENTER_X}-{CENTER_Y}'
+root.wm_geometry(GEOMETRY)
 
 font = Font(family='Consolas', size=9, weight='normal')
 root.option_add(pattern='*Font', value=font)
@@ -896,6 +907,13 @@ menu_win.add_checkbutton(
     label='Show Secrets',
     state=tk.NORMAL,
     underline=5,
+)
+menu_win.add_separator()
+menu_win.add_command(
+    command=reset,
+    label='Reset',
+    state=tk.NORMAL,
+    underline=0,
 )
 
 #############
