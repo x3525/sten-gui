@@ -57,6 +57,7 @@ import utils
 from config import (
     CONFIRM_EXIT,
     KEY_MASK,
+    ZOOMED_MODE,
 )
 from consts import *
 from error import CryptoExceptionGroup
@@ -690,6 +691,9 @@ root.wm_geometry(f'{WINDOW_W}x{WINDOW_H}-{CENTER_X}-{CENTER_Y}')
 
 font = Font(family='Consolas', size=9, weight='normal')
 root.option_add(pattern='*Font', value=font)
+
+if ZOOMED_MODE == '1':
+    root.wm_state('zoomed')
 
 #############
 # Menu Root #
