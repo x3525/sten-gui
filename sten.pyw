@@ -685,7 +685,7 @@ CENTER_X = (SCREEN_W // 2) - (WINDOW_W // 2)
 CENTER_Y = (SCREEN_H // 2) - (WINDOW_H // 2)
 
 root.wm_resizable(width=True, height=True)
-root.wm_minsize(width=WINDOW_W, height=WINDOW_H)
+root.wm_minsize(width=(WINDOW_W // 2), height=WINDOW_H)
 root.wm_geometry(f'{WINDOW_W}x{WINDOW_H}-{CENTER_X}-{CENTER_Y}')
 
 font = Font(family='Consolas', size=9, weight='normal')
