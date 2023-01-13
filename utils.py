@@ -8,9 +8,7 @@ def splitext(path: str) -> Tuple[str, str]:
     """Split the pathname `path` into a pair."""
     _, tail = os.path.split(path)
 
-    _, sep, after = tail.rpartition('.')
-
-    extension = f'.{after}' if sep else ''
+    extension = f'.{_[-1]}' if (_ := tail.rpartition('.'))[1] else ''
 
     filename = path.removesuffix(extension)
 
