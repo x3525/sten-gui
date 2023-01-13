@@ -889,6 +889,8 @@ menu_edit.add_command(
 menu_win = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Window', menu=menu_win, state=tk.NORMAL, underline=0)
 
+ICON_RESET = tk.PhotoImage(data=data64.ICON_DATA_RESET)
+
 menu_win.add_checkbutton(
     command=toggle_always_on_top,
     label='Always on Top',
@@ -911,6 +913,8 @@ menu_win.add_checkbutton(
 menu_win.add_separator()
 menu_win.add_command(
     command=reset,
+    compound=tk.LEFT,
+    image=ICON_RESET,
     label='Reset',
     state=tk.NORMAL,
     underline=0,
