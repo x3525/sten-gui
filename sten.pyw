@@ -47,9 +47,16 @@ from urllib.error import URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
 
-import numpy as np
-from PIL import Image, UnidentifiedImageError
-from numpy.typing import NDArray
+####################
+# requirements.txt #
+####################
+try:
+    import numpy as np
+    from PIL import Image, UnidentifiedImageError
+    from numpy.typing import NDArray
+except ModuleNotFoundError as ex:
+    showerror(title='Requirements', message=str(ex))
+    sys.exit(-1)
 
 import crypto
 import data64
