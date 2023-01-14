@@ -180,7 +180,7 @@ def open_(event: tk.Event) -> Optional[str]:
             f'Size: {os.stat(file).st_size} bytes',
         ]
 
-        VARIABLE_OPENED.set(f'"{file}"')
+        VARIABLE_OPENED.set(file)
         VARIABLE_OUTPUT.set('')
 
         root.wm_title(root.wm_title().rstrip('*') + '*')
@@ -330,7 +330,7 @@ def encode(event: tk.Event) -> None:
         showerror(title='Save — Encode', message=str(err))
         return
 
-    VARIABLE_OUTPUT.set(f'"{output}"')
+    VARIABLE_OUTPUT.set(output)
 
     root.wm_title(root.wm_title().rstrip('*'))
 
@@ -413,7 +413,7 @@ def decode(event: tk.Event) -> None:
         showerror(title='Save — Decode', message=str(err))
         return
 
-    VARIABLE_OUTPUT.set(f'"{output}"')
+    VARIABLE_OUTPUT.set(output)
 
     root.wm_title(root.wm_title().rstrip('*'))
 
