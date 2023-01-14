@@ -659,16 +659,17 @@ windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
 ###################
 # /!\ LOGGING /!\ #
 ###################
+LOG = os.path.join(os.path.dirname(__file__), 'sten.log')
 try:
     logging.basicConfig(
-        filename=os.path.join(os.path.dirname(__file__), 'sten.log'),
+        filename=LOG,
         filemode='a',
         format='\n%(levelname)s %(asctime)s %(message)s\n',
         datefmt='%m/%d/%Y %I:%M %p',
         level=logging.WARNING,
     )
 except PermissionError as ex:
-    showwarning(title='Log', message=str(ex))
+    LOG = str(ex)
 
 #######
 # ALL #
@@ -970,6 +971,7 @@ region.grid_rowconfigure(index=0, weight=0)
 region.grid_rowconfigure(index=1, weight=0)
 region.grid_rowconfigure(index=2, weight=0)
 region.grid_rowconfigure(index=3, weight=1)
+region.grid_rowconfigure(index=4, weight=0)
 region.grid_columnconfigure(index=0, weight=0)
 region.grid_columnconfigure(index=1, weight=1)
 region.pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
@@ -1305,6 +1307,19 @@ stx_message = ScrolledText(
 stx_message.pack_configure(
     expand=True, fill=tk.BOTH, side=tk.TOP, padx=PAD_X, pady=PAD_Y
 )
+
+######################
+# Section Status Bar #
+######################
+tk.Entry(
+    region,
+    bd=0,
+    fg=BLACK,
+    readonlybackground=WHITE,
+    relief=tk.FLAT,
+    state='readonly',
+    textvariable=tk.StringVar(value=LOG),
+).grid_configure(row=4, column=0, columnspan=2, sticky=tk.NSEW)
 
 if __name__ == '__main__':
     root.mainloop()
