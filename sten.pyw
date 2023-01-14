@@ -686,7 +686,7 @@ root.report_callback_exception = exception
 root.wm_protocol('WM_DELETE_WINDOW', close)
 
 root.wm_iconphoto(True, tk.PhotoImage(data=data64.ICON_DATA_STEN))
-windll.shell32.SetCurrentProcessExplicitAppUserModelID('gibberish')  # Taskbar
+windll.shell32.SetCurrentProcessExplicitAppUserModelID('GIBBERISH')  # Taskbar
 
 root.wm_title(f'Sten {__version__}')
 
