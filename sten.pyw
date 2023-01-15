@@ -619,7 +619,7 @@ def refresh(event: tk.Event) -> None:
 
     ch_left = ch_limit - len(stx_message.get('1.0', tk.END)[:-1])
 
-    region_message['text'] = f'{ch_left}/{ch_limit}'
+    region_msg['text'] = left_limit.substitute(left=ch_left, limit=ch_limit)
 
     if event.char in ['']:
         pass
@@ -1224,23 +1224,25 @@ for scale in band_scale.values():
     )
 
 # ~~ Region Message ~~
-region_message = tk.LabelFrame(
+left_limit = string.Template('$left/$limit')
+
+region_msg = tk.LabelFrame(
     region,
     bd=2,
     bg=BLACK,
     fg=WHITE,
     labelanchor=tk.SE,
     relief=tk.RIDGE,
-    text='-/-',
+    text=left_limit.substitute(left='-', limit='-'),
 )
-region_message.pack_propagate(True)
-region_message.grid_configure(
+region_msg.pack_propagate(True)
+region_msg.grid_configure(
     row=1, rowspan=3, column=1, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
 # ~~ Message ~~
 stx_message = ScrolledText(
-    region_message,
+    region_msg,
     bd=0,
     bg=WHITE,
     fg=BLACK,
