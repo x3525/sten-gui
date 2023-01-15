@@ -566,7 +566,7 @@ def refresh(event: tk.Event) -> None:
         pass
     else:
         ent_key.delete('0', tk.END)
-        ent_key['vcmd'] = cname_vcmd[cipher_name]  # Update validate command
+        ent_key['vcmd'] = name_vcmd[cipher_name]  # Update validate command
 
     message = stx_message.get('1.0', tk.END)[:-1]
 
@@ -1164,7 +1164,7 @@ box_ciphers.pack_configure(
 Hovertip(box_ciphers, text=crypto.__doc__, hover_delay=750)
 
 # ~~ Cipher Key ~~
-cname_vcmd = {
+name_vcmd = {
     name: (root.register(cipher.validate), *cipher.code)
     for name, cipher in crypto.ciphers.items()
 }
@@ -1178,7 +1178,7 @@ ent_key = tk.Entry(
     show=KEY_MASK,
     state=tk.DISABLED,
     validate='key',
-    validatecommand=cname_vcmd[box_ciphers.get()],
+    validatecommand=name_vcmd[box_ciphers.get()],
 )
 ent_key.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')  # No paste
 ent_key.pack_configure(
