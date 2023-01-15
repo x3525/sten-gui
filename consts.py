@@ -31,9 +31,7 @@ DELIMITER = '$t3nb7$3rh@tC3l!k'
 PAD_X = (5.0, 5.0)
 PAD_Y = (5.0, 5.0)
 
-##########
-# Colors #
-##########
+# ~~ Colors ~~
 BLACK = '#000000'
 BLUE = '#0000FF'
 CYAN = '#00FFFF'
@@ -41,9 +39,7 @@ GREEN = '#00FF00'
 RED = '#FF0000'
 WHITE = '#FFFFFF'
 
-############
-# V Events #
-############
+# ~~ V Events ~~
 VIRTUAL_EVENT_DECODE = '<<v_event_Decode>>'
 VIRTUAL_EVENT_ENCODE = '<<v_event_Encode>>'
 VIRTUAL_EVENT_OPEN = '<<v_event_Open>>'
@@ -57,9 +53,7 @@ VIRTUAL_EVENT_REDO = '<<Redo>>'
 VIRTUAL_EVENT_SELECT_ALL = '<<SelectAll>>'
 VIRTUAL_EVENT_UNDO = '<<Undo>>'
 
-#############
-# Sequences #
-#############
+# ~~ Sequences ~~
 SEQUENCE_COPY = ['<Control-Key-c>', '<Control-Lock-Key-C>']
 SEQUENCE_CUT = ['<Control-Key-x>', '<Control-Lock-Key-X>']
 SEQUENCE_DECODE = ['<Control-Key-d>', '<Control-Lock-Key-D>']
@@ -70,9 +64,7 @@ SEQUENCE_REDO = ['<Control-Key-y>', '<Control-Lock-Key-Y>']
 SEQUENCE_SELECT_ALL = ['<Control-Key-a>', '<Control-Lock-Key-A>']
 SEQUENCE_UNDO = ['<Control-Key-z>', '<Control-Lock-Key-Z>']
 
-#############
-# Shortcuts #
-#############
+# ~~ Shortcuts ~~
 SHORTCUT_COPY = 'Ctrl+C'
 SHORTCUT_CUT = 'Ctrl+X'
 SHORTCUT_DECODE = 'Ctrl+D'

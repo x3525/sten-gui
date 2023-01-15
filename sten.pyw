@@ -47,9 +47,7 @@ from urllib.error import URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
 
-####################
-# requirements.txt #
-####################
+# ~~ requirements.txt ~~
 try:
     import numpy as np
     from PIL import Image, UnidentifiedImageError
@@ -170,7 +168,7 @@ def open_(event: tk.Event) -> Optional[str]:
         Picture.filename = os.path.basename(filename)
         Picture.extension = extension
 
-        ch_capacity = (Picture.pixel * len(band_scl)) - len(DELIMITER)
+        ch_capacity = (Picture.pixel * len(band_scale)) - len(DELIMITER)
 
         Picture.properties = [
             f'Capacity: {ch_capacity} characters',
@@ -249,13 +247,13 @@ def encode(event: tk.Event) -> None:
             detail=f'Delimiter: {DELIMITER}',
         )
 
-    cr_name, key = box_ciphers.get(), ent_key.get()
+    cipher_name, key = box_ciphers.get(), ent_key.get()
 
-    if (not key) and cr_name:
+    if (not key) and cipher_name:
         return
 
     try:
-        cipher = crypto.ciphers[cr_name](key)
+        cipher = crypto.ciphers[cipher_name](key)
     except CryptoExceptionGroup as err:
         showerror(title='Encode', message=str(err))
         return
@@ -346,13 +344,13 @@ def t_decode() -> None:
 
 def decode(event: tk.Event) -> None:
     """Extract a hidden message from a stego-object."""
-    cr_name, key = box_ciphers.get(), ent_key.get()
+    cipher_name, key = box_ciphers.get(), ent_key.get()
 
-    if (not key) and cr_name:
+    if (not key) and cipher_name:
         return
 
     try:
-        cipher = crypto.ciphers[cr_name](key)
+        cipher = crypto.ciphers[cipher_name](key)
     except CryptoExceptionGroup as err:
         showerror(title='Decode', message=str(err))
         return
@@ -517,7 +515,7 @@ def check_for_updates() -> None:
             showinfo(title='Update', message='You have the latest version.')
 
 
-def refresh_1(event: tk.Event) -> None:
+def refresh_activate(event: tk.Event) -> None:
     """When a file is opened, this method binds widgets to 'F5' once."""
     if Globals.is_bound:
         return
@@ -548,7 +546,7 @@ def refresh_1(event: tk.Event) -> None:
     stx_message.bind('<ButtonPress-3>', popup)
     stx_message.bind('<KeyRelease>', refresh)
 
-    for scl in band_scl.values():
+    for scl in band_scale.values():
         scl['state'] = tk.NORMAL
         scl.bind('<ButtonRelease-1>', refresh)  # Left mouse button release
         scl.bind('<ButtonRelease-2>', refresh)  # Middle mouse button release
@@ -562,20 +560,20 @@ def refresh(event: tk.Event) -> None:
     """The ultimate refresh function, aka F5."""
     widget = event.widget
 
-    cr_name = box_ciphers.get()
+    cipher_name = box_ciphers.get()
 
     if widget is not box_ciphers:
         pass
     else:
         ent_key.delete('0', tk.END)
-        ent_key['vcmd'] = name_vcmd[cr_name]  # Update validate command
+        ent_key['vcmd'] = cname_vcmd[cipher_name]  # Update validate command
 
     message = stx_message.get('1.0', tk.END)[:-1]
 
     key = ent_key.get()
 
     # Activate/deactivate encode/decode features
-    if (not key) and cr_name:
+    if (not key) and cipher_name:
         root.unbind(VIRTUAL_EVENT_ENCODE)
         root.unbind(VIRTUAL_EVENT_DECODE)
         menu_file.entryconfigure(MENU_ITEM_INDEX_ENCODE, state=tk.DISABLED)
@@ -597,10 +595,10 @@ def refresh(event: tk.Event) -> None:
 
     band_lsb = {
         band: int(lsb)
-        for band, scl in band_scl.items() if (lsb := scl.get()) != 0
+        for band, scl in band_scale.items() if (lsb := scl.get()) != 0
     }
 
-    if widget not in band_scl.values():
+    if widget not in band_scale.values():
         pass
     else:
         if len(band_lsb) != 0:
@@ -610,7 +608,7 @@ def refresh(event: tk.Event) -> None:
         else:
             widget['fg'] = BLACK
             widget.set(1)
-            band_lsb = {list(band_scl.values()).index(widget): 1}
+            band_lsb = {list(band_scale.values()).index(widget): 1}
 
     ch_limit = ((Picture.pixel * sum(band_lsb.values())) // B) - len(DELIMITER)
 
@@ -621,7 +619,7 @@ def refresh(event: tk.Event) -> None:
 
     ch_left = ch_limit - len(stx_message.get('1.0', tk.END)[:-1])
 
-    region_1_1['text'] = f'{ch_left}/{ch_limit}'
+    region_message['text'] = f'{ch_left}/{ch_limit}'
 
     if event.char in ['']:
         pass
@@ -648,17 +646,13 @@ def exception(*args) -> None:
 
 sys.excepthook = exception
 
-#################
-# DPI AWARENESS #
-#################
+# ~~ DPI AWARENESS ~~
 PROCESS_PER_MONITOR_DPI_AWARE = 2
 PROCESS_DPI_AWARENESS = PROCESS_PER_MONITOR_DPI_AWARE
 
 windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
 
-###################
-# /!\ LOGGING /!\ #
-###################
+# ~~ /!\ LOGGING /!\ ~~
 try:
     logging.basicConfig(
         filename=os.path.join(os.path.dirname(__file__), 'sten.log'),
@@ -670,14 +664,10 @@ try:
 except PermissionError:
     pass
 
-#######
-# ALL #
-#######
+# ~~ ALL ~~
 ALL_ENTRY_WITH_SECRET = []
 
-###############
-# Window Root #
-###############
+# ~~ Window Root ~~
 root = tk.Tk()
 root.pack_propagate(True)
 
@@ -713,17 +703,13 @@ root.option_add(pattern='*Font', value=font)
 if ZOOMED_MODE == '1':
     root.wm_state('zoomed')
 
-#############
-# Menu Root #
-#############
+# ~~ Menu Root ~~
 menu = tk.Menu(root, tearoff=False)
 root.configure(menu=menu)
 
 MENU_INDEX_EDIT = 1
 
-#############
-# Menu File #
-#############
+# ~~ Menu File ~~
 menu_file = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='File', menu=menu_file, state=tk.NORMAL, underline=0)
 
@@ -753,7 +739,7 @@ menu_file.add_command(
     underline=3,
 )
 root.bind(VIRTUAL_EVENT_OPEN, open_)
-root.bind(VIRTUAL_EVENT_OPEN, refresh_1, add='+')
+root.bind(VIRTUAL_EVENT_OPEN, refresh_activate, add='+')
 root.bind(VIRTUAL_EVENT_OPEN, refresh, add='+')
 menu_file.add_command(
     command=t_open_text,
@@ -797,9 +783,7 @@ menu_file.add_command(
     underline=1,
 )
 
-#############
-# Menu Edit #
-#############
+# ~~ Menu Edit ~~
 menu_edit = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Edit', menu=menu_edit, state=tk.DISABLED, underline=0)
 
@@ -883,9 +867,7 @@ menu_edit.add_command(
     underline=7,
 )
 
-###############
-# Menu Window #
-###############
+# ~~ Menu Window ~~
 menu_win = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Window', menu=menu_win, state=tk.NORMAL, underline=0)
 
@@ -920,9 +902,7 @@ menu_win.add_command(
     underline=0,
 )
 
-#############
-# Menu Help #
-#############
+# ~~ Menu Help ~~
 menu_help = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Help', menu=menu_help, state=tk.NORMAL, underline=0)
 
@@ -930,7 +910,7 @@ ICON_ABOUT = tk.PhotoImage(data=data64.ICON_DATA_ABOUT)
 
 menu_help.add_command(
     command=lambda: webbrowser.open_new_tab(URL),
-    label='GitHub...',
+    label='Web Site...',
     state=tk.NORMAL,
     underline=0,
 )
@@ -956,9 +936,7 @@ menu_help.add_command(
     underline=0,
 )
 
-###############
-# Region Root #
-###############
+# ~~ Region Root ~~
 region = tk.Frame(
     root,
     bd=0,
@@ -974,25 +952,21 @@ region.grid_columnconfigure(index=0, weight=0)
 region.grid_columnconfigure(index=1, weight=1)
 region.pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
 
-#################
-# Region (0, 0) #
-#################
-region_0_0 = tk.Frame(
+# ~~ Region Steganography ~~
+region_stego = tk.Frame(
     region,
     bd=2,
     bg=BLACK,
     relief=tk.RIDGE,
 )
-region_0_0.pack_propagate(True)
-region_0_0.grid_configure(
+region_stego.pack_propagate(True)
+region_stego.grid_configure(
     row=0, column=0, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
-#################
-# Button Encode #
-#################
+# ~~ Button Encode ~~
 btn_encode = tk.Button(
-    region_0_0,
+    region_stego,
     activebackground=WHITE,
     anchor=tk.CENTER,
     bd=5,
@@ -1006,17 +980,15 @@ btn_encode = tk.Button(
     text='Encode',
 )
 btn_encode.pack_configure(
-    expand=True, fill=tk.BOTH, side=tk.LEFT, padx=PAD_X, pady=PAD_Y
+    expand=True, fill=tk.BOTH, padx=PAD_X, pady=PAD_Y, side=tk.LEFT
 )
 Hovertip(
     btn_encode, text=f'[{SHORTCUT_ENCODE}]\n{encode.__doc__}', hover_delay=750
 )
 
-#################
-# Button Decode #
-#################
+# ~~ Button Decode ~~
 btn_decode = tk.Button(
-    region_0_0,
+    region_stego,
     activebackground=WHITE,
     anchor=tk.CENTER,
     bd=5,
@@ -1030,36 +1002,32 @@ btn_decode = tk.Button(
     text='Decode',
 )
 btn_decode.pack_configure(
-    expand=True, fill=tk.BOTH, side=tk.LEFT, padx=PAD_X, pady=PAD_Y
+    expand=True, fill=tk.BOTH, padx=PAD_X, pady=PAD_Y, side=tk.LEFT
 )
 Hovertip(
     btn_decode, text=f'[{SHORTCUT_DECODE}]\n{decode.__doc__}', hover_delay=750
 )
 
-#################
-# Region (0, 1) #
-#################
-region_0_1 = tk.Frame(
+# ~~ Region Information ~~
+region_info = tk.Frame(
     region,
     bd=2,
     bg=BLACK,
     relief=tk.RIDGE,
 )
-region_0_1.grid_propagate(True)
-region_0_1.grid_rowconfigure(index=0, weight=1)
-region_0_1.grid_rowconfigure(index=1, weight=1)
-region_0_1.grid_columnconfigure(index=0, weight=0)
-region_0_1.grid_columnconfigure(index=1, weight=1)
-region_0_1.grid_columnconfigure(index=2, weight=0)
-region_0_1.grid_configure(
+region_info.grid_propagate(True)
+region_info.grid_rowconfigure(index=0, weight=1)
+region_info.grid_rowconfigure(index=1, weight=1)
+region_info.grid_columnconfigure(index=0, weight=0)
+region_info.grid_columnconfigure(index=1, weight=1)
+region_info.grid_columnconfigure(index=2, weight=0)
+region_info.grid_configure(
     row=0, column=1, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
-#######################
-# Section Opened File #
-#######################
+# ~~ Section Opened File ~~
 tk.Label(
-    region_0_1,
+    region_info,
     anchor=tk.CENTER,
     bd=0,
     bg=BLACK,
@@ -1069,7 +1037,7 @@ tk.Label(
     text='Opened',
 ).grid_configure(row=0, column=0, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW)
 tk.Entry(
-    region_0_1,
+    region_info,
     bd=0,
     fg=BLACK,
     readonlybackground=WHITE,
@@ -1078,7 +1046,7 @@ tk.Entry(
     textvariable=(VARIABLE_OPENED := tk.StringVar()),
 ).grid_configure(row=0, column=1, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW)
 btn_open = tk.Button(
-    region_0_1,
+    region_info,
     activebackground=WHITE,
     anchor=tk.CENTER,
     bd=5,
@@ -1096,11 +1064,9 @@ Hovertip(
     btn_open, text=f'[{SHORTCUT_OPEN}]\n{open_.__doc__}', hover_delay=750
 )
 
-#######################
-# Section Output File #
-#######################
+# ~~ Section Output File ~~
 tk.Label(
-    region_0_1,
+    region_info,
     anchor=tk.CENTER,
     bd=0,
     bg=BLACK,
@@ -1110,7 +1076,7 @@ tk.Label(
     text='Output',
 ).grid_configure(row=1, column=0, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW)
 tk.Entry(
-    region_0_1,
+    region_info,
     bd=0,
     fg=BLACK,
     readonlybackground=WHITE,
@@ -1119,7 +1085,7 @@ tk.Entry(
     textvariable=(VARIABLE_OUTPUT := tk.StringVar()),
 ).grid_configure(row=1, column=1, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW)
 btn_show = tk.Button(
-    region_0_1,
+    region_info,
     activebackground=WHITE,
     anchor=tk.CENTER,
     bd=5,
@@ -1135,10 +1101,8 @@ btn_show.grid_configure(
 )
 Hovertip(btn_show, text=show.__doc__, hover_delay=750)
 
-#################
-# Region (1, 0) #
-#################
-region_1_0 = tk.LabelFrame(
+# ~~ Region PRNG ~~
+region_prng = tk.LabelFrame(
     region,
     bd=2,
     bg=BLACK,
@@ -1147,16 +1111,14 @@ region_1_0 = tk.LabelFrame(
     relief=tk.RIDGE,
     text='PRNG',
 )
-region_1_0.pack_propagate(True)
-region_1_0.grid_configure(
+region_prng.pack_propagate(True)
+region_prng.grid_configure(
     row=1, column=0, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
-#############
-# PRNG Seed #
-#############
+# ~~ PRNG Seed ~~
 ent_rng = tk.Entry(
-    region_1_0,
+    region_prng,
     bd=0,
     bg=WHITE,
     fg=BLACK,
@@ -1166,16 +1128,14 @@ ent_rng = tk.Entry(
 )
 ent_rng.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')  # No paste
 ent_rng.pack_configure(
-    expand=True, fill=tk.BOTH, ipady=10.0, side=tk.TOP, padx=PAD_X, pady=PAD_Y
+    expand=True, fill=tk.BOTH, ipady=10.0, padx=PAD_X, pady=PAD_Y, side=tk.TOP
 )
 Hovertip(ent_rng, text='Pseudo-random number generator seed.', hover_delay=750)
 
 ALL_ENTRY_WITH_SECRET.append(ent_rng)
 
-#################
-# Region (2, 0) #
-#################
-region_2_0 = tk.LabelFrame(
+# ~~ Region Cryptography ~~
+region_crypto = tk.LabelFrame(
     region,
     bd=2,
     bg=BLACK,
@@ -1184,16 +1144,14 @@ region_2_0 = tk.LabelFrame(
     relief=tk.RIDGE,
     text='Encryption',
 )
-region_2_0.pack_propagate(True)
-region_2_0.grid_configure(
+region_crypto.pack_propagate(True)
+region_crypto.grid_configure(
     row=2, column=0, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
-###########
-# Ciphers #
-###########
+# ~~ Ciphers ~~
 box_ciphers = Combobox(
-    region_2_0,
+    region_crypto,
     background=WHITE,
     foreground=BLACK,
     state=tk.DISABLED,
@@ -1201,20 +1159,18 @@ box_ciphers = Combobox(
 )
 box_ciphers.current(1)
 box_ciphers.pack_configure(
-    expand=True, fill=tk.BOTH, ipady=7.5, side=tk.TOP, padx=PAD_X, pady=PAD_Y
+    expand=True, fill=tk.BOTH, ipady=7.5, padx=PAD_X, pady=PAD_Y, side=tk.TOP
 )
 Hovertip(box_ciphers, text=crypto.__doc__, hover_delay=750)
 
-##############
-# Cipher Key #
-##############
-name_vcmd = {
+# ~~ Cipher Key ~~
+cname_vcmd = {
     name: (root.register(cipher.validate), *cipher.code)
     for name, cipher in crypto.ciphers.items()
 }
 
 ent_key = tk.Entry(
-    region_2_0,
+    region_crypto,
     bd=0,
     bg=WHITE,
     fg=BLACK,
@@ -1222,20 +1178,18 @@ ent_key = tk.Entry(
     show=KEY_MASK,
     state=tk.DISABLED,
     validate='key',
-    validatecommand=name_vcmd[box_ciphers.get()],
+    validatecommand=cname_vcmd[box_ciphers.get()],
 )
 ent_key.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')  # No paste
 ent_key.pack_configure(
-    expand=True, fill=tk.BOTH, ipady=10.0, side=tk.TOP, padx=PAD_X, pady=PAD_Y
+    expand=True, fill=tk.BOTH, ipady=10.0, padx=PAD_X, pady=PAD_Y, side=tk.TOP
 )
 Hovertip(ent_key, text='Cipher key.', hover_delay=750)
 
 ALL_ENTRY_WITH_SECRET.append(ent_key)
 
-#################
-# Region (3, 0) #
-#################
-region_3_0 = tk.LabelFrame(
+# ~~ Region LSB ~~
+region_lsb = tk.LabelFrame(
     region,
     bd=2,
     bg=BLACK,
@@ -1244,21 +1198,19 @@ region_3_0 = tk.LabelFrame(
     relief=tk.RIDGE,
     text='n-LSB',
 )
-region_3_0.pack_propagate(True)
-region_3_0.grid_configure(
+region_lsb.pack_propagate(True)
+region_lsb.grid_configure(
     row=3, column=0, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
-#################
-# Section n-LSB #
-#################
-band_scl = {
-    0: tk.Scale(region_3_0, fg=BLACK, from_=B, to=0, troughcolor=RED),
-    1: tk.Scale(region_3_0, fg=BLACK, from_=B, to=0, troughcolor=GREEN),
-    2: tk.Scale(region_3_0, fg=BLACK, from_=B, to=0, troughcolor=BLUE),
+# ~~ n-LSB ~~
+band_scale = {
+    0: tk.Scale(region_lsb, fg=BLACK, from_=B, to=0, troughcolor=RED),
+    1: tk.Scale(region_lsb, fg=BLACK, from_=B, to=0, troughcolor=GREEN),
+    2: tk.Scale(region_lsb, fg=BLACK, from_=B, to=0, troughcolor=BLUE),
 }  # Stick with this order!
 
-for scale in band_scl.values():
+for scale in band_scale.values():
     scale.set(1)
     scale.configure(
         bd=2,
@@ -1268,13 +1220,11 @@ for scale in band_scl.values():
         state=tk.DISABLED,
     )
     scale.pack_configure(
-        expand=True, fill=tk.BOTH, side=tk.LEFT, padx=PAD_X, pady=PAD_Y
+        expand=True, fill=tk.BOTH, padx=PAD_X, pady=PAD_Y, side=tk.LEFT
     )
 
-#################
-# Region (1, 1) #
-#################
-region_1_1 = tk.LabelFrame(
+# ~~ Region Message ~~
+region_message = tk.LabelFrame(
     region,
     bd=2,
     bg=BLACK,
@@ -1283,16 +1233,14 @@ region_1_1 = tk.LabelFrame(
     relief=tk.RIDGE,
     text='-/-',
 )
-region_1_1.pack_propagate(True)
-region_1_1.grid_configure(
+region_message.pack_propagate(True)
+region_message.grid_configure(
     row=1, rowspan=3, column=1, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
-###################
-# Section Message #
-###################
+# ~~ Message ~~
 stx_message = ScrolledText(
-    region_1_1,
+    region_message,
     bd=0,
     bg=WHITE,
     fg=BLACK,
@@ -1303,7 +1251,7 @@ stx_message = ScrolledText(
     wrap='char',
 )
 stx_message.pack_configure(
-    expand=True, fill=tk.BOTH, side=tk.TOP, padx=PAD_X, pady=PAD_Y
+    expand=True, fill=tk.BOTH, padx=PAD_X, pady=PAD_Y, side=tk.TOP
 )
 
 if __name__ == '__main__':
