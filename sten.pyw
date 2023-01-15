@@ -1257,4 +1257,7 @@ stx_message.pack_configure(
 )
 
 if __name__ == '__main__':
-    root.mainloop()
+    try:
+        root.mainloop()
+    except KeyboardInterrupt:
+        pass
