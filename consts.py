@@ -45,7 +45,7 @@ VIRTUAL_EVENT_ENCODE = '<<v_event_Encode>>'
 VIRTUAL_EVENT_OPEN = '<<v_event_Open>>'
 VIRTUAL_EVENT_OPEN_TEXT = '<<v_event_OpenText>>'
 
-# Predefined
+# ~ Predefined V Events ~
 VIRTUAL_EVENT_COPY = '<<Copy>>'
 VIRTUAL_EVENT_CUT = '<<Cut>>'
 VIRTUAL_EVENT_PASTE = '<<Paste>>'
