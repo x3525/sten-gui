@@ -709,7 +709,7 @@ root.configure(menu=menu)
 
 MENU_INDEX_EDIT = 1
 
-# ~~ Menu File ~~
+# ~ Menu File ~
 menu_file = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='File', menu=menu_file, state=tk.NORMAL, underline=0)
 
@@ -783,7 +783,7 @@ menu_file.add_command(
     underline=1,
 )
 
-# ~~ Menu Edit ~~
+# ~ Menu Edit ~
 menu_edit = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Edit', menu=menu_edit, state=tk.DISABLED, underline=0)
 
@@ -867,7 +867,7 @@ menu_edit.add_command(
     underline=7,
 )
 
-# ~~ Menu Window ~~
+# ~ Menu Window ~
 menu_win = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Window', menu=menu_win, state=tk.NORMAL, underline=0)
 
@@ -902,7 +902,7 @@ menu_win.add_command(
     underline=0,
 )
 
-# ~~ Menu Help ~~
+# ~ Menu Help ~
 menu_help = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Help', menu=menu_help, state=tk.NORMAL, underline=0)
 
@@ -964,7 +964,7 @@ region_stego.grid_configure(
     row=0, column=0, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
-# ~~ Button Encode ~~
+# ~ Button Encode ~
 btn_encode = tk.Button(
     region_stego,
     activebackground=WHITE,
@@ -986,7 +986,7 @@ Hovertip(
     btn_encode, text=f'[{SHORTCUT_ENCODE}]\n{encode.__doc__}', hover_delay=750
 )
 
-# ~~ Button Decode ~~
+# ~ Button Decode ~
 btn_decode = tk.Button(
     region_stego,
     activebackground=WHITE,
@@ -1025,7 +1025,7 @@ region_info.grid_configure(
     row=0, column=1, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
-# ~~ Section Opened File ~~
+# ~ Section Opened File ~
 tk.Label(
     region_info,
     anchor=tk.CENTER,
@@ -1064,7 +1064,7 @@ Hovertip(
     btn_open, text=f'[{SHORTCUT_OPEN}]\n{open_.__doc__}', hover_delay=750
 )
 
-# ~~ Section Output File ~~
+# ~ Section Output File ~
 tk.Label(
     region_info,
     anchor=tk.CENTER,
@@ -1116,7 +1116,7 @@ region_prng.grid_configure(
     row=1, column=0, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
-# ~~ PRNG Seed ~~
+# ~ PRNG Seed ~
 ent_rng = tk.Entry(
     region_prng,
     bd=0,
@@ -1149,7 +1149,7 @@ region_crypto.grid_configure(
     row=2, column=0, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
-# ~~ Ciphers ~~
+# ~ Ciphers ~
 box_ciphers = Combobox(
     region_crypto,
     background=WHITE,
@@ -1163,7 +1163,7 @@ box_ciphers.pack_configure(
 )
 Hovertip(box_ciphers, text=crypto.__doc__, hover_delay=750)
 
-# ~~ Cipher Key ~~
+# ~ Cipher Key ~
 name_vcmd = {
     name: (root.register(cipher.validate), *cipher.code)
     for name, cipher in crypto.ciphers.items()
@@ -1203,7 +1203,7 @@ region_lsb.grid_configure(
     row=3, column=0, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
-# ~~ n-LSB ~~
+# ~ n-LSB ~
 band_scale = {
     0: tk.Scale(region_lsb, fg=BLACK, from_=B, to=0, troughcolor=RED),
     1: tk.Scale(region_lsb, fg=BLACK, from_=B, to=0, troughcolor=GREEN),
@@ -1240,7 +1240,7 @@ region_msg.grid_configure(
     row=1, rowspan=3, column=1, padx=PAD_X, pady=PAD_Y, sticky=tk.NSEW
 )
 
-# ~~ Message ~~
+# ~ Message ~
 stx_message = ScrolledText(
     region_msg,
     bd=0,
