@@ -301,7 +301,7 @@ def encode(event: tk.Event) -> None:
 
     pixels = list(range(Picture.pixel))
 
-    if seed := ent_rng.get():
+    if seed := ent_prng.get():
         random.seed(seed)
         random.shuffle(pixels)
 
@@ -377,7 +377,7 @@ def decode(event: tk.Event) -> None:
 
     pixels = list(range(Picture.pixel))
 
-    if seed := ent_rng.get():
+    if seed := ent_prng.get():
         random.seed(seed)
         random.shuffle(pixels)
 
@@ -534,7 +534,7 @@ def refresh_activate(event: tk.Event) -> None:
     root.bind(VIRTUAL_EVENT_CUT, refresh)
     root.bind(VIRTUAL_EVENT_PASTE, refresh)
 
-    ent_rng['state'] = tk.NORMAL
+    ent_prng['state'] = tk.NORMAL
 
     box_ciphers['state'] = 'readonly'
     box_ciphers.bind('<<ComboboxSelected>>', refresh)
@@ -1117,7 +1117,7 @@ region_prng.grid_configure(
 )
 
 # ~ PRNG Seed ~
-ent_rng = tk.Entry(
+ent_prng = tk.Entry(
     region_prng,
     bd=0,
     bg=WHITE,
@@ -1126,13 +1126,15 @@ ent_rng = tk.Entry(
     show=KEY_MASK,
     state=tk.DISABLED,
 )
-ent_rng.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')  # No paste
-ent_rng.pack_configure(
+ent_prng.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')  # No paste
+ent_prng.pack_configure(
     expand=True, fill=tk.BOTH, ipady=10.0, padx=PAD_X, pady=PAD_Y, side=tk.TOP
 )
-Hovertip(ent_rng, text='Pseudo-random number generator seed.', hover_delay=750)
+Hovertip(
+    ent_prng, text='Pseudo-random number generator seed.', hover_delay=750
+)
 
-ALL_ENTRY_WITH_SECRET.append(ent_rng)
+ALL_ENTRY_WITH_SECRET.append(ent_prng)
 
 # ~~ Region Cryptography ~~
 region_crypto = tk.LabelFrame(
