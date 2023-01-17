@@ -2,6 +2,14 @@
 # History of the Sten #
 #######################
 
+0.4
+18 January 2023
+----
+* 128abf287b1a40922e637da9ce5bd7656a7bc092: Added a menu item that resets the window.
+* d41d91f66cf6106277a533d4ddb44ca7e5cfa17e: Configuration file changes.
+* 55efb1475d20515f5db7759b49f92792c6666776: Fixed some valid extensions not being detected.
+* 6a5294a2e7ae546eced31b3c8d47bd7088deac8f: Fixed some widgets showing as active when they should not be active.
+
 0.3
 11 January 2023
 ----
