@@ -98,12 +98,12 @@ class Picture:
     properties: List[str]
 
 
-def t_open_() -> None:
-    """Trigger 'VIRTUAL_EVENT_OPEN'."""
-    root.event_generate(VIRTUAL_EVENT_OPEN)
+def t_open_file() -> None:
+    """Trigger 'VIRTUAL_EVENT_OPEN_FILE'."""
+    root.event_generate(VIRTUAL_EVENT_OPEN_FILE)
 
 
-def open_(event: tk.Event) -> Optional[str]:
+def open_file(event: tk.Event) -> Optional[str]:
     """Open a picture file."""
     bg_old = button_open['bg']  # Backup
     button_open['bg'] = WHITE
@@ -113,7 +113,7 @@ def open_(event: tk.Event) -> Optional[str]:
         file = askopenfilename(
             filetypes=[('Picture Files', EXTENSIONS_PICTURE)],
             initialdir='~',
-            title='Open',
+            title='Open File',
         )
         if not file:
             break
@@ -122,7 +122,7 @@ def open_(event: tk.Event) -> Optional[str]:
 
         if extension.casefold() not in EXTENSIONS_PICTURE:
             retry = askretrycancel(
-                title='Open',
+                title='Open File',
                 message=f'Not a valid extension: {extension}',
                 detail=f'Valid extensions: {EXTENSIONS_PICTURE_PRETTY}',
             )
@@ -138,12 +138,12 @@ def open_(event: tk.Event) -> Optional[str]:
                 FileNotFoundError, PermissionError,
                 UnidentifiedImageError, Image.DecompressionBombWarning,
         ) as err:
-            retry = askretrycancel(title='Open', message=str(err))
+            retry = askretrycancel(title='Open File', message=str(err))
             continue
 
         if mode not in MODES_PICTURE:
             retry = askretrycancel(
-                title='Open',
+                title='Open File',
                 message=f'Mode not supported: {mode}',
                 detail=f'Supported modes: {MODES_PICTURE_PRETTY}',
             )
@@ -153,7 +153,7 @@ def open_(event: tk.Event) -> Optional[str]:
 
         if pixel < min_pix:
             retry = askretrycancel(
-                title='Open',
+                title='Open File',
                 message=f'Need minimum {min_pix} pixels.',
                 detail=f'Provided: {pixel} pixels',
             )
@@ -189,7 +189,7 @@ def open_(event: tk.Event) -> Optional[str]:
         return None
 
     button_open['bg'] = bg_old  # Restore
-    return 'break'  # No more event processing for 'VIRTUAL_EVENT_OPEN'
+    return 'break'  # No more event processing for 'VIRTUAL_EVENT_OPEN_FILE'
 
 
 def t_open_text() -> None:
@@ -724,29 +724,29 @@ MENU_ITEM_INDEX_ENCODE = 3
 MENU_ITEM_INDEX_DECODE = 4
 MENU_ITEM_INDEX_IMAGE_PROPERTIES = 6
 
-ICON_OPEN = tk.PhotoImage(data=data64.ICON_DATA_OPEN)
+ICON_OPEN_FILE = tk.PhotoImage(data=data64.ICON_DATA_OPEN_FILE)
 ICON_ENCODE = tk.PhotoImage(data=data64.ICON_DATA_ENCODE)
 ICON_DECODE = tk.PhotoImage(data=data64.ICON_DATA_DECODE)
 ICON_IMAGE_PROPERTIES = tk.PhotoImage(data=data64.ICON_DATA_IMAGE_PROPERTIES)
 
 # Stay away from <Control-Key-o> key sequence! Read 28.:
 # https://www.tcl.tk/man/tcl/TkCmd/text.html#M192
-root.event_add(VIRTUAL_EVENT_OPEN, *SEQUENCE_OPEN)
+root.event_add(VIRTUAL_EVENT_OPEN_FILE, *SEQUENCE_OPEN_FILE)
 root.event_add(VIRTUAL_EVENT_ENCODE, *SEQUENCE_ENCODE)
 root.event_add(VIRTUAL_EVENT_DECODE, *SEQUENCE_DECODE)
 
 menu_file.add_command(
-    accelerator=SHORTCUT_OPEN,
-    command=t_open_,
+    accelerator=SHORTCUT_OPEN_FILE,
+    command=t_open_file,
     compound=tk.LEFT,
-    image=ICON_OPEN,
-    label='Open...',
+    image=ICON_OPEN_FILE,
+    label='Open File...',
     state=tk.NORMAL,
     underline=3,
 )
-root.bind(VIRTUAL_EVENT_OPEN, open_)
-root.bind(VIRTUAL_EVENT_OPEN, refresh_activate, add='+')
-root.bind(VIRTUAL_EVENT_OPEN, refresh, add='+')
+root.bind(VIRTUAL_EVENT_OPEN_FILE, open_file)
+root.bind(VIRTUAL_EVENT_OPEN_FILE, refresh_activate, add='+')
+root.bind(VIRTUAL_EVENT_OPEN_FILE, refresh, add='+')
 menu_file.add_command(
     command=t_open_text,
     label='Open Text...',
@@ -1064,7 +1064,7 @@ button_open = tk.Button(
     anchor=tk.CENTER,
     bd=5,
     bg=WHITE,
-    command=t_open_,
+    command=t_open_file,
     fg=BLACK,
     relief=tk.FLAT,
     state=tk.NORMAL,
@@ -1075,7 +1075,7 @@ button_open.grid_configure(
 )
 Hovertip(
     button_open,
-    text=f'[{SHORTCUT_OPEN}]\n{open_.__doc__}',
+    text=f'[{SHORTCUT_OPEN_FILE}]\n{open_file.__doc__}',
     hover_delay=750,
 )
 
