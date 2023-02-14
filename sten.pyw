@@ -698,7 +698,11 @@ CENTER_X = (SCREEN_W // 2) - (WINDOW_W // 2)
 CENTER_Y = (SCREEN_H // 2) - (WINDOW_H // 2)
 
 root.wm_resizable(width=True, height=True)
-root.wm_minsize(width=(WINDOW_W // 2), height=WINDOW_H)
+
+WINDOW_W_MIN = WINDOW_W // 2
+WINDOW_H_MIN = WINDOW_H
+
+root.wm_minsize(width=WINDOW_W_MIN, height=WINDOW_H_MIN)
 
 GEOMETRY = f'{WINDOW_W}x{WINDOW_H}-{CENTER_X}-{CENTER_Y}'
 root.wm_geometry(GEOMETRY)
