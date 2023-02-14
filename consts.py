@@ -41,7 +41,7 @@ WHITE = '#FFFFFF'
 # ~ Custom V Events ~
 VIRTUAL_EVENT_DECODE = '<<v_event_Decode>>'
 VIRTUAL_EVENT_ENCODE = '<<v_event_Encode>>'
-VIRTUAL_EVENT_OPEN_FILE = '<<v_event_Open>>'
+VIRTUAL_EVENT_OPEN_FILE = '<<v_event_OpenFile>>'
 VIRTUAL_EVENT_OPEN_TEXT = '<<v_event_OpenText>>'
 
 # ~ Predefined V Events ~
