@@ -703,7 +703,7 @@ root.option_add(pattern='*Font', value=font)
 if ZOOMED_MODE == '1':
     root.wm_state('zoomed')
 
-# ~~ Menu Root ~~ TODO Continue...
+# ~~ Menu Root ~~
 menu = tk.Menu(root, tearoff=False)
 root.configure(menu=menu)
 

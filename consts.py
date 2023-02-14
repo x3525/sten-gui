@@ -40,6 +40,7 @@ RED = '#FF0000'
 WHITE = '#FFFFFF'
 
 # ~~ V Events ~~
+# ~ Custom V Events ~
 VIRTUAL_EVENT_DECODE = '<<v_event_Decode>>'
 VIRTUAL_EVENT_ENCODE = '<<v_event_Encode>>'
 VIRTUAL_EVENT_OPEN = '<<v_event_Open>>'
