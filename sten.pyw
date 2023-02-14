@@ -207,7 +207,7 @@ def open_text(event: tk.Event) -> Optional[str]:
             title='Open Text',
         )
         if not file:
-            return 'break'
+            break
 
         try:
             with open(file, 'r', encoding='utf-8', errors='ignore') as out:
