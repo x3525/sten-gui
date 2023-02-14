@@ -28,8 +28,10 @@ B = 8  # 8-bits = 1-Byte
 
 DELIMITER = '$t3nb7$3rh@tC3l!k'
 
-PAD_X = (5.0, 5.0)
-PAD_Y = (5.0, 5.0)
+IPADY = 10.0
+
+PADX = (5.0, 5.0)
+PADY = (5.0, 5.0)
 
 # ~~ Colors ~~
 BLACK = '#000000'
@@ -37,6 +39,8 @@ BLUE = '#0000FF'
 CYAN = '#00FFFF'
 GREEN = '#00FF00'
 RED = '#FF0000'
+SYSTEMBUTTONFACE = '#F0F0F0'
+SYSTEMHIGHLIGHT = '#0078D7'
 WHITE = '#FFFFFF'
 
 # ~~ V Events ~~
