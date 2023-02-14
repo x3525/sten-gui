@@ -911,9 +911,12 @@ menu_help = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Help', menu=menu_help, state=tk.NORMAL, underline=0)
 
 ICON_ABOUT = tk.PhotoImage(data=data64.ICON_DATA_ABOUT)
+ICON_WEB_SITE = tk.PhotoImage(data=data64.ICON_DATA_WEB_SITE)
 
 menu_help.add_command(
     command=lambda: webbrowser.open_new_tab(URL),
+    compound=tk.LEFT,
+    image=ICON_WEB_SITE,
     label='Web Site...',
     state=tk.NORMAL,
     underline=0,
