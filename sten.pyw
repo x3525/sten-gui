@@ -199,23 +199,27 @@ def t_open_text() -> None:
 
 def open_text(event: tk.Event) -> Optional[str]:
     """Read the contents of a file as text."""
-    file = askopenfilename(
-        filetypes=[('All Files', EXTENSIONS_ALL)],
-        initialdir='~',
-        title='Open Text',
-    )
-    if not file:
-        return 'break'
+    retry = True
+    while retry:
+        file = askopenfilename(
+            filetypes=[('All Files', EXTENSIONS_ALL)],
+            initialdir='~',
+            title='Open Text',
+        )
+        if not file:
+            return 'break'
 
-    try:
-        with open(file, 'r', encoding='utf-8', errors='ignore') as out:
-            stx_message.delete('1.0', tk.END)
-            stx_message.insert('1.0', out.read())
-    except (FileNotFoundError, PermissionError) as err:
-        showerror(title='Open Text', message=str(err))
-        return 'break'
-    else:
-        return None
+        try:
+            with open(file, 'r', encoding='utf-8', errors='ignore') as out:
+                stx_message.delete('1.0', tk.END)
+                stx_message.insert('1.0', out.read())
+        except (FileNotFoundError, PermissionError) as err:
+            retry = askretrycancel(title='Open Text', message=str(err))
+            continue
+        else:
+            return None
+
+    return 'break'
 
 
 def t_encode() -> None:
