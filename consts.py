@@ -2,11 +2,13 @@
 
 # Do not use any imports!
 
+# ~~ URLs ~~
 URL = 'https://github.com/serhatcelik/sten'  # No trailing slash!
 URL_ARCHIVE = f'{URL}/archive/refs/tags/'  # Do not remove the trailing slash!
-URL_LATEST_VERSION = f'{URL}/releases/latest'
 URL_CHANGELOG = f'{URL}/blob/main/CHANGELOG'
+URL_LATEST_VERSION = f'{URL}/releases/latest'
 
+# ~~ Extensions ~~
 EXTENSIONS_ALL = ['*.*']
 EXTENSIONS_MESSAGE = [
     '.txt',
@@ -18,20 +20,12 @@ EXTENSIONS_PICTURE = [
 ]
 EXTENSIONS_PICTURE_PRETTY = ' '.join(_ for _ in EXTENSIONS_PICTURE)
 
+# ~~ Modes ~~
 MODES_PICTURE = [
     'RGB',
     'RGBA',
 ]
 MODES_PICTURE_PRETTY = ' '.join(_ for _ in MODES_PICTURE)
-
-B = 8  # 8-bits = 1-Byte
-
-DELIMITER = '$t3nb7$3rh@tC3l!k'
-
-IPADY = 10.0
-
-PADX = (5.0, 5.0)
-PADY = (5.0, 5.0)
 
 # ~~ Colors ~~
 BLACK = '#000000'
@@ -79,3 +73,13 @@ SHORTCUT_PASTE = 'Ctrl+V'
 SHORTCUT_REDO = 'Ctrl+Y'
 SHORTCUT_SELECT_ALL = 'Ctrl+A'
 SHORTCUT_UNDO = 'Ctrl+Z'
+
+# ~~ Miscellaneous ~~
+IPADY = 10.0
+
+PADX = (5.0, 5.0)
+PADY = (5.0, 5.0)
+
+B = 8  # 8-bits = 1-Byte
+
+DELIMITER = '$t3nb7$3rh@tC3l!k'
