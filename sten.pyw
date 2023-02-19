@@ -47,7 +47,7 @@ from urllib.error import URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
 
-# ~~ requirements.txt ~~
+# ~ requirements.txt ~
 try:
     import numpy as np
     from PIL import Image, UnidentifiedImageError
@@ -57,7 +57,7 @@ except ModuleNotFoundError as ex:
     sys.exit(-1)
 
 import crypto
-import data64
+import icons
 import utils
 from config import (
     CONFIRM_EXIT,
@@ -652,13 +652,13 @@ def exception(*args) -> None:
 
 sys.excepthook = exception
 
-# ~~ DPI AWARENESS ~~
+# ~ DPI AWARENESS ~
 PROCESS_PER_MONITOR_DPI_AWARE = 2
 PROCESS_DPI_AWARENESS = PROCESS_PER_MONITOR_DPI_AWARE
 
 windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
 
-# ~~ /!\ LOGGING /!\ ~~
+# ~ /!\ LOGGING /!\ ~
 try:
     logging.basicConfig(
         filename=os.path.join(os.path.dirname(__file__), 'sten.log'),
@@ -670,10 +670,10 @@ try:
 except PermissionError:
     pass
 
-# ~~ ALL ~~
+# ~ ALL ~
 ALL_ENTRY_WITH_SECRET = []
 
-# ~~ Window Root ~~
+# ~ Window Root ~
 root = tk.Tk()
 root.pack_propagate(True)
 
@@ -681,7 +681,7 @@ root.report_callback_exception = exception
 
 root.wm_protocol('WM_DELETE_WINDOW', close)
 
-root.wm_iconphoto(True, tk.PhotoImage(data=data64.ICON_DATA_STEN))
+root.wm_iconphoto(True, tk.PhotoImage(data=icons.ICON_DATA_STEN))
 windll.shell32.SetCurrentProcessExplicitAppUserModelID('GIBBERISH')  # Taskbar
 
 root.wm_title(f'Sten {__version__}')
@@ -713,13 +713,13 @@ root.option_add(pattern='*Font', value=font)
 if ZOOMED_MODE == '1':
     root.wm_state('zoomed')
 
-# ~~ Menu Root ~~
+# ~ Menu Root ~
 menu = tk.Menu(root, tearoff=False)
 root.configure(menu=menu)
 
 MENU_INDEX_EDIT = 1
 
-# ~ Menu File ~
+# ~~ Menu File ~~
 menu_file = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='File', menu=menu_file, state=tk.NORMAL, underline=0)
 
@@ -728,10 +728,10 @@ MENU_ITEM_INDEX_ENCODE = 3
 MENU_ITEM_INDEX_DECODE = 4
 MENU_ITEM_INDEX_IMAGE_PROPERTIES = 6
 
-ICON_OPEN_FILE = tk.PhotoImage(data=data64.ICON_DATA_OPEN_FILE)
-ICON_ENCODE = tk.PhotoImage(data=data64.ICON_DATA_ENCODE)
-ICON_DECODE = tk.PhotoImage(data=data64.ICON_DATA_DECODE)
-ICON_IMAGE_PROPERTIES = tk.PhotoImage(data=data64.ICON_DATA_IMAGE_PROPERTIES)
+ICON_OPEN_FILE = tk.PhotoImage(data=icons.ICON_DATA_OPEN_FILE)
+ICON_ENCODE = tk.PhotoImage(data=icons.ICON_DATA_ENCODE)
+ICON_DECODE = tk.PhotoImage(data=icons.ICON_DATA_DECODE)
+ICON_IMAGE_PROPERTIES = tk.PhotoImage(data=icons.ICON_DATA_IMAGE_PROPERTIES)
 
 # Stay away from <Control-Key-o> key sequence! Read 28.:
 # https://www.tcl.tk/man/tcl/TkCmd/text.html#M192
@@ -793,16 +793,16 @@ menu_file.add_command(
     underline=1,
 )
 
-# ~ Menu Edit ~
+# ~~ Menu Edit ~~
 menu_edit = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Edit', menu=menu_edit, state=tk.DISABLED, underline=0)
 
-ICON_UNDO = tk.PhotoImage(data=data64.ICON_DATA_UNDO)
-ICON_REDO = tk.PhotoImage(data=data64.ICON_DATA_REDO)
-ICON_CUT = tk.PhotoImage(data=data64.ICON_DATA_CUT)
-ICON_COPY = tk.PhotoImage(data=data64.ICON_DATA_COPY)
-ICON_PASTE = tk.PhotoImage(data=data64.ICON_DATA_PASTE)
-ICON_SELECT_ALL = tk.PhotoImage(data=data64.ICON_DATA_SELECT_ALL)
+ICON_UNDO = tk.PhotoImage(data=icons.ICON_DATA_UNDO)
+ICON_REDO = tk.PhotoImage(data=icons.ICON_DATA_REDO)
+ICON_CUT = tk.PhotoImage(data=icons.ICON_DATA_CUT)
+ICON_COPY = tk.PhotoImage(data=icons.ICON_DATA_COPY)
+ICON_PASTE = tk.PhotoImage(data=icons.ICON_DATA_PASTE)
+ICON_SELECT_ALL = tk.PhotoImage(data=icons.ICON_DATA_SELECT_ALL)
 
 # Remove all defaults...
 root.event_delete(VIRTUAL_EVENT_UNDO)
@@ -877,11 +877,11 @@ menu_edit.add_command(
     underline=7,
 )
 
-# ~ Menu Window ~
+# ~~ Menu Window ~~
 menu_win = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Window', menu=menu_win, state=tk.NORMAL, underline=0)
 
-ICON_RESET = tk.PhotoImage(data=data64.ICON_DATA_RESET)
+ICON_RESET = tk.PhotoImage(data=icons.ICON_DATA_RESET)
 
 menu_win.add_checkbutton(
     command=toggle_always_on_top,
@@ -912,12 +912,12 @@ menu_win.add_command(
     underline=0,
 )
 
-# ~ Menu Help ~
+# ~~ Menu Help ~~
 menu_help = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Help', menu=menu_help, state=tk.NORMAL, underline=0)
 
-ICON_ABOUT = tk.PhotoImage(data=data64.ICON_DATA_ABOUT)
-ICON_WEB_SITE = tk.PhotoImage(data=data64.ICON_DATA_WEB_SITE)
+ICON_ABOUT = tk.PhotoImage(data=icons.ICON_DATA_ABOUT)
+ICON_WEB_SITE = tk.PhotoImage(data=icons.ICON_DATA_WEB_SITE)
 
 menu_help.add_command(
     command=lambda: webbrowser.open_new_tab(URL),
@@ -949,7 +949,7 @@ menu_help.add_command(
     underline=0,
 )
 
-# ~~ Region Root ~~
+# ~ Region Root ~
 region = tk.Frame(
     root,
     bd=0,
@@ -965,7 +965,7 @@ region.grid_columnconfigure(index=0, weight=0)
 region.grid_columnconfigure(index=1, weight=1)
 region.pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
 
-# ~~ Region Steganography ~~
+# ~ Region Steganography ~
 region_stego = tk.Frame(
     region,
     bd=2,
@@ -977,7 +977,7 @@ region_stego.grid_configure(
     row=0, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
 
-# ~ Button Encode ~
+# ~~ Button Encode ~~
 button_encode = tk.Button(
     region_stego,
     activebackground=WHITE,
@@ -1001,7 +1001,7 @@ Hovertip(
     hover_delay=750,
 )
 
-# ~ Button Decode ~
+# ~~ Button Decode ~~
 button_decode = tk.Button(
     region_stego,
     activebackground=WHITE,
@@ -1025,7 +1025,7 @@ Hovertip(
     hover_delay=750,
 )
 
-# ~~ Region Information ~~
+# ~ Region Information ~
 region_info = tk.Frame(
     region,
     bd=2,
@@ -1042,7 +1042,7 @@ region_info.grid_configure(
     row=0, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
 
-# ~ Section Opened File ~
+# ~~ Section Opened File ~~
 tk.Label(
     region_info,
     anchor=tk.CENTER,
@@ -1083,7 +1083,7 @@ Hovertip(
     hover_delay=750,
 )
 
-# ~ Section Output File ~
+# ~~ Section Output File ~~
 tk.Label(
     region_info,
     anchor=tk.CENTER,
@@ -1124,7 +1124,7 @@ Hovertip(
     hover_delay=750,
 )
 
-# ~~ Region PRNG ~~
+# ~ Region PRNG ~
 region_prng = tk.LabelFrame(
     region,
     bd=2,
@@ -1139,7 +1139,7 @@ region_prng.grid_configure(
     row=1, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
 
-# ~ PRNG Seed ~
+# ~~ PRNG Seed ~~
 entry_prng = tk.Entry(
     region_prng,
     bd=0,
@@ -1162,7 +1162,7 @@ Hovertip(
 
 ALL_ENTRY_WITH_SECRET.append(entry_prng)
 
-# ~~ Region Cryptography ~~
+# ~ Region Cryptography ~
 region_crypto = tk.LabelFrame(
     region,
     bd=2,
@@ -1177,7 +1177,7 @@ region_crypto.grid_configure(
     row=2, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
 
-# ~ Ciphers ~
+# ~~ Ciphers ~~
 box_ciphers = Combobox(
     region_crypto,
     background=WHITE,
@@ -1195,7 +1195,7 @@ Hovertip(
     hover_delay=750,
 )
 
-# ~ Cipher Key ~
+# ~~ Cipher Key ~~
 name_vcmd = {
     name: (root.register(cipher.validate), *cipher.code)
     for name, cipher in crypto.ciphers.items()
@@ -1225,7 +1225,7 @@ Hovertip(
 
 ALL_ENTRY_WITH_SECRET.append(entry_key)
 
-# ~~ Region LSB ~~
+# ~ Region LSB ~
 region_lsb = tk.LabelFrame(
     region,
     bd=2,
@@ -1240,7 +1240,7 @@ region_lsb.grid_configure(
     row=3, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
 
-# ~ n-LSB ~
+# ~~ n-LSB ~~
 band_scale = {
     0: tk.Scale(region_lsb, fg=BLACK, from_=B, to=0, troughcolor=RED),
     1: tk.Scale(region_lsb, fg=BLACK, from_=B, to=0, troughcolor=GREEN),
@@ -1260,7 +1260,7 @@ for scale in band_scale.values():
         expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.LEFT
     )
 
-# ~~ Region Message ~~
+# ~ Region Message ~
 left_limit = string.Template('$left/$limit')
 
 region_msg = tk.LabelFrame(
@@ -1277,7 +1277,7 @@ region_msg.grid_configure(
     row=1, rowspan=3, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
 
-# ~ Message ~
+# ~~ Message ~~
 text_message = ScrolledText(
     region_msg,
     bd=0,

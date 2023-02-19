@@ -20,7 +20,7 @@ from error import (
 _ALPHABET = string.printable
 _ALPHABET_LEN = len(_ALPHABET)
 
-# ~~ Custom Type Hints ~~
+# ~ Custom Type Hints ~
 _TIntArray = NDArray[np.int32]
 
 _TJob = Literal['+', '-']
@@ -30,7 +30,7 @@ _TOrd = Literal['ij', 'ji']
 # https://www.tcl.tk/man/tcl/TkCmd/entry.html#M16
 _TVCMDCode = Literal['%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W']
 
-# ~~ Validate Actions ~~
+# ~ Validate Actions ~
 _DELETE = '0'
 _INSERT = '1'
 

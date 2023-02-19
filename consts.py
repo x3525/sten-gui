@@ -2,13 +2,13 @@
 
 # Do not use any imports!
 
-# ~~ URLs ~~
+# ~ URLs ~
 URL = 'https://github.com/serhatcelik/sten'  # No trailing slash!
 URL_ARCHIVE = f'{URL}/archive/refs/tags/'  # Do not remove the trailing slash!
 URL_CHANGELOG = f'{URL}/blob/main/CHANGELOG'
 URL_LATEST_VERSION = f'{URL}/releases/latest'
 
-# ~~ Extensions ~~
+# ~ Extensions ~
 EXTENSIONS_ALL = ['*.*']
 EXTENSIONS_MESSAGE = [
     '.txt',
@@ -20,14 +20,14 @@ EXTENSIONS_PICTURE = [
 ]
 EXTENSIONS_PICTURE_PRETTY = ' '.join(_ for _ in EXTENSIONS_PICTURE)
 
-# ~~ Modes ~~
+# ~ Modes ~
 MODES_PICTURE = [
     'RGB',
     'RGBA',
 ]
 MODES_PICTURE_PRETTY = ' '.join(_ for _ in MODES_PICTURE)
 
-# ~~ Colors ~~
+# ~ Colors ~
 BLACK = '#000000'
 BLUE = '#0000FF'
 CYAN = '#00FFFF'
@@ -37,14 +37,14 @@ SYSTEMBUTTONFACE = '#F0F0F0'
 SYSTEMHIGHLIGHT = '#0078D7'
 WHITE = '#FFFFFF'
 
-# ~~ V Events ~~
-# ~ Custom V Events ~
+# ~ V Events ~
+# ~~ Custom V Events ~~
 VIRTUAL_EVENT_DECODE = '<<v_event_Decode>>'
 VIRTUAL_EVENT_ENCODE = '<<v_event_Encode>>'
 VIRTUAL_EVENT_OPEN_FILE = '<<v_event_OpenFile>>'
 VIRTUAL_EVENT_OPEN_TEXT = '<<v_event_OpenText>>'
 
-# ~ Predefined V Events ~
+# ~~ Predefined V Events ~~
 VIRTUAL_EVENT_COPY = '<<Copy>>'
 VIRTUAL_EVENT_CUT = '<<Cut>>'
 VIRTUAL_EVENT_PASTE = '<<Paste>>'
@@ -52,7 +52,7 @@ VIRTUAL_EVENT_REDO = '<<Redo>>'
 VIRTUAL_EVENT_SELECT_ALL = '<<SelectAll>>'
 VIRTUAL_EVENT_UNDO = '<<Undo>>'
 
-# ~~ Sequences ~~
+# ~ Sequences ~
 SEQUENCE_COPY = ['<Control-Key-c>', '<Control-Lock-Key-C>']
 SEQUENCE_CUT = ['<Control-Key-x>', '<Control-Lock-Key-X>']
 SEQUENCE_DECODE = ['<Control-Key-d>', '<Control-Lock-Key-D>']
@@ -63,7 +63,7 @@ SEQUENCE_REDO = ['<Control-Key-y>', '<Control-Lock-Key-Y>']
 SEQUENCE_SELECT_ALL = ['<Control-Key-a>', '<Control-Lock-Key-A>']
 SEQUENCE_UNDO = ['<Control-Key-z>', '<Control-Lock-Key-Z>']
 
-# ~~ Shortcuts ~~
+# ~ Shortcuts ~
 SHORTCUT_COPY = 'Ctrl+C'
 SHORTCUT_CUT = 'Ctrl+X'
 SHORTCUT_DECODE = 'Ctrl+D'
@@ -74,7 +74,7 @@ SHORTCUT_REDO = 'Ctrl+Y'
 SHORTCUT_SELECT_ALL = 'Ctrl+A'
 SHORTCUT_UNDO = 'Ctrl+Z'
 
-# ~~ Miscellaneous ~~
+# ~ Miscellaneous ~
 IPADY = 10.0
 
 PADX = (5.0, 5.0)
