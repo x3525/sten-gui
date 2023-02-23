@@ -74,7 +74,7 @@ warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 @dataclass
 class Globals:
-    """Global 'over control' variables."""
+    """Global 'control' variables."""
 
     band_lsb: Tuple[Tuple[int, int], ...]
 
