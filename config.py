@@ -3,26 +3,26 @@
 import configparser
 import os
 
-_CONFIG = configparser.ConfigParser()
+config = configparser.ConfigParser()
 
-_CONFIG.read(os.path.join(os.path.dirname(__file__), 'sten.conf'))
+config.read(os.path.join(os.path.dirname(__file__), 'sten.conf'))
 
-_DEFAULT_CONFIG = {
-    (_SECTION_PREFERENCES := 'PREFERENCES'): {
-        (_OPTION_CONFIRM_EXIT := 'ConfirmExit'): '1',
-        (_OPTION_KEY_MASK := 'KeyMask'): '*',
-        (_OPTION_ZOOMED_MODE := 'ZoomedMode'): '0',
+config_default = {
+    (section_preferences := 'PREFERENCES'): {
+        (option_confirm_exit := 'ConfirmExit'): '1',
+        (option_key_mask := 'KeyMask'): '*',
+        (option_zoomed_mode := 'ZoomedMode'): '0',
     },
 }
 
-for section, option_default in _DEFAULT_CONFIG.items():
-    if not _CONFIG.has_section(section):
-        _CONFIG[section] = option_default
+for section, option_default in config_default.items():
+    if not config.has_section(section):
+        config[section] = option_default
     else:
         for option, default in option_default.items():
-            if not _CONFIG.has_option(section, option):
-                _CONFIG[section][option] = default
+            if not config.has_option(section, option):
+                config[section][option] = default
 
-CONFIRM_EXIT = _CONFIG[_SECTION_PREFERENCES][_OPTION_CONFIRM_EXIT]
-KEY_MASK = _CONFIG[_SECTION_PREFERENCES][_OPTION_KEY_MASK]
-ZOOMED_MODE = _CONFIG[_SECTION_PREFERENCES][_OPTION_ZOOMED_MODE]
+CONFIRM_EXIT = config[section_preferences][option_confirm_exit]
+KEY_MASK = config[section_preferences][option_key_mask]
+ZOOMED_MODE = config[section_preferences][option_zoomed_mode]
