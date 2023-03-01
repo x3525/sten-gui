@@ -74,7 +74,7 @@ warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 @dataclass
 class Globals:
-    """Global 'control' variables for the internal module."""
+    """Global "control" variables for the internal module."""
 
     band_lsb: Tuple[Tuple[int, int], ...]
 
@@ -457,19 +457,19 @@ def popup(event: tk.Event) -> None:
 
 
 def toggle_always_on_top() -> None:
-    """Toggle 'Always on Top' state."""
+    """Toggle "Always on Top" state."""
     topmost = root.wm_attributes()[root.wm_attributes().index('-topmost') + 1]
     root.wm_attributes('-topmost', 1 - topmost)
 
 
 def toggle_transparent() -> None:
-    """Toggle 'Transparent' state."""
+    """Toggle "Transparent" state."""
     alpha = root.wm_attributes()[root.wm_attributes().index('-alpha') + 1]
     root.wm_attributes('-alpha', 1.5 - alpha)
 
 
 def toggle_show_secrets() -> None:
-    """Toggle 'Show Secrets' state."""
+    """Toggle "Show Secrets" state."""
     for entry in ALL_ENTRY_WITH_SECRET:
         entry['show'] = '' if (entry['show'] != '') else KEY_MASK
 
@@ -505,7 +505,7 @@ def check_for_updates() -> None:
 
 
 def refresh_activate(event: tk.Event) -> None:
-    """When a file is opened, this method binds widgets to 'F5' once."""
+    """When a file is opened, this method binds widgets to "F5" once."""
     if Globals.is_bound:
         return
 
