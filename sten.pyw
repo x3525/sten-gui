@@ -98,11 +98,6 @@ class Picture:
     properties: List[str]
 
 
-def t_open_file() -> None:
-    """Trigger 'VIRTUAL_EVENT_OPEN_FILE'."""
-    root.event_generate(VIRTUAL_EVENT_OPEN_FILE)
-
-
 def open_file(event: tk.Event) -> Optional[str]:
     """Open a picture file."""
     bg_old = button_open['bg']  # Backup
@@ -192,11 +187,6 @@ def open_file(event: tk.Event) -> Optional[str]:
     return 'break'  # No more event processing for 'VIRTUAL_EVENT_OPEN_FILE'
 
 
-def t_open_text() -> None:
-    """Trigger 'VIRTUAL_EVENT_OPEN_TEXT'."""
-    root.event_generate(VIRTUAL_EVENT_OPEN_TEXT)
-
-
 def open_text(event: tk.Event) -> Optional[str]:
     """Read the contents of a file as text."""
     retry = True
@@ -220,11 +210,6 @@ def open_text(event: tk.Event) -> Optional[str]:
             return None
 
     return 'break'
-
-
-def t_encode() -> None:
-    """Trigger 'VIRTUAL_EVENT_ENCODE'."""
-    root.event_generate(VIRTUAL_EVENT_ENCODE)
 
 
 def encode(event: tk.Event) -> None:
@@ -341,11 +326,6 @@ def encode(event: tk.Event) -> None:
     showinfo(title='Encode', message='File is encoded.')
 
 
-def t_decode() -> None:
-    """Trigger 'VIRTUAL_EVENT_DECODE'."""
-    root.event_generate(VIRTUAL_EVENT_DECODE)
-
-
 def decode(event: tk.Event) -> None:
     """Extract a hidden message from a stego-object."""
     cipher_name, key = box_ciphers.get(), entry_key.get()
@@ -449,6 +429,11 @@ def close() -> None:
             root.destroy()
     else:
         root.destroy()
+
+
+def trigger(v_event: str) -> None:
+    """Trigger the given virtual event."""
+    root.event_generate(v_event)
 
 
 def manipulate(v_event: str) -> None:
@@ -741,7 +726,7 @@ root.event_add(VIRTUAL_EVENT_DECODE, *SEQUENCE_DECODE)
 
 menu_file.add_command(
     accelerator=SHORTCUT_OPEN_FILE,
-    command=t_open_file,
+    command=lambda: trigger(VIRTUAL_EVENT_OPEN_FILE),
     compound=tk.LEFT,
     image=ICON_OPEN_FILE,
     label='Open File...',
@@ -752,7 +737,7 @@ root.bind(VIRTUAL_EVENT_OPEN_FILE, open_file)
 root.bind(VIRTUAL_EVENT_OPEN_FILE, refresh_activate, add='+')
 root.bind(VIRTUAL_EVENT_OPEN_FILE, refresh, add='+')
 menu_file.add_command(
-    command=t_open_text,
+    command=lambda: trigger(VIRTUAL_EVENT_OPEN_TEXT),
     label='Open Text...',
     state=tk.DISABLED,
     underline=5,
@@ -760,7 +745,7 @@ menu_file.add_command(
 menu_file.add_separator()
 menu_file.add_command(
     accelerator=SHORTCUT_ENCODE,
-    command=t_encode,
+    command=lambda: trigger(VIRTUAL_EVENT_ENCODE),
     compound=tk.LEFT,
     image=ICON_ENCODE,
     label='Encode...',
@@ -769,7 +754,7 @@ menu_file.add_command(
 )
 menu_file.add_command(
     accelerator=SHORTCUT_DECODE,
-    command=t_decode,
+    command=lambda: trigger(VIRTUAL_EVENT_DECODE),
     compound=tk.LEFT,
     image=ICON_DECODE,
     label='Decode...',
@@ -984,7 +969,7 @@ button_encode = tk.Button(
     anchor=tk.CENTER,
     bd=5,
     bg=WHITE,
-    command=t_encode,
+    command=lambda: trigger(VIRTUAL_EVENT_ENCODE),
     compound=tk.LEFT,
     fg=BLACK,
     image=ICON_ENCODE,
@@ -1008,7 +993,7 @@ button_decode = tk.Button(
     anchor=tk.CENTER,
     bd=5,
     bg=WHITE,
-    command=t_decode,
+    command=lambda: trigger(VIRTUAL_EVENT_DECODE),
     compound=tk.LEFT,
     fg=BLACK,
     image=ICON_DECODE,
@@ -1068,7 +1053,7 @@ button_open = tk.Button(
     anchor=tk.CENTER,
     bd=5,
     bg=WHITE,
-    command=t_open_file,
+    command=lambda: trigger(VIRTUAL_EVENT_OPEN_FILE),
     fg=BLACK,
     relief=tk.FLAT,
     state=tk.NORMAL,
