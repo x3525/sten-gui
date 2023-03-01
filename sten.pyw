@@ -184,7 +184,7 @@ def open_file(event: tk.Event) -> Optional[str]:
         return None
 
     button_open['bg'] = bg_old  # Restore
-    return 'break'  # No more event processing for 'VIRTUAL_EVENT_OPEN_FILE'
+    return 'break'  # No more event processing for "VIRTUAL_EVENT_OPEN_FILE"
 
 
 def open_text(event: tk.Event) -> Optional[str]:
@@ -616,7 +616,7 @@ def refresh(event: tk.Event) -> None:
         pass
     else:
         if (widget is text_message) or (ch_left == 0):
-            # Scroll such that the character at 'INSERT' index is visible
+            # Scroll such that the character at "INSERT" index is visible
             text_message.see(text_message.index(tk.INSERT))
 
     Globals.band_lsb = tuple(band_lsb.items())
