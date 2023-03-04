@@ -6,9 +6,9 @@ from typing import Tuple
 
 def splitext(path: str) -> Tuple[str, str]:
     """Split the pathname `path` into a pair."""
-    _, tail = os.path.split(path)
+    tail = os.path.split(path)[1]
 
-    extension = f'.{_[-1]}' if (_ := tail.rpartition('.'))[1] else ''
+    extension = ''.join(_[1:]) if (_ := tail.rpartition('.'))[1] else _[1]
 
     filename = path.removesuffix(extension)
 
