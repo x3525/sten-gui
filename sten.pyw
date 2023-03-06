@@ -212,7 +212,7 @@ def open_text(event: tk.Event) -> Optional[str]:
     return 'break'
 
 
-def encode(event: tk.Event) -> None:
+def encode(event: tk.Event):
     """Create a stego-object."""
     message = text_message.get('1.0', tk.END)[:-1]
 
@@ -326,7 +326,7 @@ def encode(event: tk.Event) -> None:
     showinfo(title='Encode', message='File is encoded.')
 
 
-def decode(event: tk.Event) -> None:
+def decode(event: tk.Event):
     """Extract a hidden message from a stego-object."""
     cipher_name, key = box_ciphers.get(), entry_key.get()
 
@@ -404,7 +404,7 @@ def decode(event: tk.Event) -> None:
     showinfo(title='Decode', message='File is decoded.')
 
 
-def show() -> None:
+def show():
     """Show a previously encoded/decoded file."""
     try:
         os.startfile(VARIABLE_OUTPUT.get(), operation='open')  # nosec
@@ -412,12 +412,12 @@ def show() -> None:
         showerror(title='Show', message=str(err))
 
 
-def properties() -> None:
+def properties():
     """Show image properties."""
     showinfo(title='Image Properties', message='\n'.join(Picture.properties))
 
 
-def close() -> None:
+def close():
     """Destroy the main window."""
     if CONFIRM_EXIT == '1':
         yes = askokcancel(
@@ -431,12 +431,12 @@ def close() -> None:
         root.destroy()
 
 
-def trigger(v_event: str) -> None:
+def trigger(v_event: str):
     """Trigger the given virtual event."""
     root.event_generate(v_event)
 
 
-def manipulate(v_event: str) -> None:
+def manipulate(v_event: str):
     """Use a manipulation by triggering the given virtual event."""
     widget = root.focus_get()
 
@@ -446,7 +446,7 @@ def manipulate(v_event: str) -> None:
     widget.event_generate(v_event)
 
 
-def popup(event: tk.Event) -> None:
+def popup(event: tk.Event):
     """Context menu."""
     event.widget.focus_set()
 
@@ -456,25 +456,25 @@ def popup(event: tk.Event) -> None:
         menu_edit.grab_release()
 
 
-def toggle_always_on_top() -> None:
+def toggle_always_on_top():
     """Toggle "Always on Top" state."""
     topmost = root.wm_attributes()[root.wm_attributes().index('-topmost') + 1]
     root.wm_attributes('-topmost', 1 - topmost)
 
 
-def toggle_transparent() -> None:
+def toggle_transparent():
     """Toggle "Transparent" state."""
     alpha = root.wm_attributes()[root.wm_attributes().index('-alpha') + 1]
     root.wm_attributes('-alpha', 1.5 - alpha)
 
 
-def toggle_show_secrets() -> None:
+def toggle_show_secrets():
     """Toggle "Show Secrets" state."""
     for entry in ALL_ENTRY_WITH_SECRET:
         entry['show'] = '' if (entry['show'] != '') else KEY_MASK
 
 
-def reset() -> None:
+def reset():
     """Reset window."""
     if ZOOMED_MODE == '1':
         root.wm_state('zoomed')
@@ -483,7 +483,7 @@ def reset() -> None:
     root.wm_geometry(GEOMETRY)
 
 
-def check_for_updates() -> None:
+def check_for_updates():
     """Check for the application updates."""
     try:
         with urlopen(URL_LATEST_VERSION, timeout=10.0) as answer:  # nosec
@@ -504,7 +504,7 @@ def check_for_updates() -> None:
             showinfo(title='Update', message='You have the latest version.')
 
 
-def refresh_activate(event: tk.Event) -> None:
+def refresh_activate(event: tk.Event):
     """When a file is opened, this method binds widgets to "F5" once."""
     if Globals.is_bound:
         return
@@ -547,7 +547,7 @@ def refresh_activate(event: tk.Event) -> None:
         scl.bind('<B3-Motion>', refresh)
 
 
-def refresh(event: tk.Event) -> None:
+def refresh(event: tk.Event):
     """The ultimate refresh function, aka F5."""
     widget = event.widget
 
@@ -624,7 +624,7 @@ def refresh(event: tk.Event) -> None:
     Globals.ch_limit = ch_limit
 
 
-def exception(*args) -> None:
+def exception(*args):
     """Report callback exception."""
     logging.critical(args, exc_info=(args[0], args[1], args[2]))
     showerror(
