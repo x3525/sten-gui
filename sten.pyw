@@ -42,7 +42,7 @@ from tkinter.messagebox import (
 )
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Combobox
-from typing import List, Optional, Tuple
+from typing import Optional
 from urllib.error import URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
@@ -76,7 +76,7 @@ warnings.simplefilter('error', Image.DecompressionBombWarning)
 class Globals:
     """Global "control" variables for the internal module."""
 
-    band_lsb: Tuple[Tuple[int, int], ...]
+    band_lsb: tuple[tuple[int, int], ...]
 
     ch_limit: int
 
@@ -89,13 +89,13 @@ class Picture:
 
     pixel: int
     imagedata: NDArray
-    dimensions: Tuple[int, int]
+    dimensions: tuple[int, int]
     mode: str
 
     filename: str
     extension: str
 
-    properties: List[str]
+    properties: list[str]
 
 
 def open_file(event: tk.Event) -> Optional[str]:

@@ -6,7 +6,7 @@ import operator
 import re
 import string
 from abc import ABC, abstractmethod
-from typing import Dict, Literal, Tuple, Type
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
@@ -39,7 +39,7 @@ class _Cipher(ABC):
     """Abstract base class for cipher classes."""
 
     name: str
-    code: Tuple[_TVCMDCode, _TVCMDCode]
+    code: tuple[_TVCMDCode, _TVCMDCode]
 
     def __init__(self, text: str):
         """Prepare the given plain/cipher text."""
@@ -173,7 +173,7 @@ class _Hill(_Cipher):
         return (action == _DELETE) or (data in _ALPHABET)
 
     @staticmethod
-    def _m_fill(vals: str, shape: Tuple[int, int], order: _TOrd) -> _TIntArray:
+    def _m_fill(vals: str, shape: tuple[int, int], order: _TOrd) -> _TIntArray:
         """Create a new matrix and fill it."""
         orders = {
             'ij': lambda *given: given,
@@ -301,7 +301,7 @@ class _Vigenere(_Cipher):
         return text
 
 
-ciphers: Dict[str, Type[_Cipher]] = {
+ciphers: dict[str, type[_Cipher]] = {
     (NAC := _NotACipher.name): _NotACipher,
     (CAESAR := _Caesar.name): _Caesar,
     (HILL := _Hill.name): _Hill,
