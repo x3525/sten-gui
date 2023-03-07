@@ -58,7 +58,6 @@ except ModuleNotFoundError as ex:
 
 import crypto
 import icons
-import utils
 from config import (
     CONFIRM_EXIT,
     KEY_MASK,
@@ -66,6 +65,7 @@ from config import (
 )
 from consts import *
 from error import CryptoExceptionGroup
+from utils import splitext
 from version import __version__
 
 # Turn matching warnings into exceptions
@@ -113,7 +113,7 @@ def open_file(event: tk.Event) -> Optional[str]:
         if not file:
             break
 
-        filename, extension = utils.splitext(file)
+        filename, extension = splitext(file)
 
         if extension.casefold() not in EXTENSIONS_PICTURE:
             retry = askretrycancel(
@@ -257,7 +257,7 @@ def encode(event: tk.Event):
     if not output:
         return
 
-    _, extension = utils.splitext(output)
+    _, extension = splitext(output)
 
     if extension.casefold() not in EXTENSIONS_PICTURE:
         showerror(
@@ -349,7 +349,7 @@ def decode(event: tk.Event):
     if not output:
         return
 
-    _, extension = utils.splitext(output)
+    _, extension = splitext(output)
 
     if extension.casefold() not in EXTENSIONS_MESSAGE:
         showerror(
