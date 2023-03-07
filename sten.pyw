@@ -200,7 +200,7 @@ def open_text(event: tk.Event) -> Optional[str]:
             break
 
         try:
-            with open(file, 'r', encoding='utf-8', errors='ignore') as out:
+            with open(file, encoding='utf-8', errors='ignore') as out:
                 text_message.delete('1.0', tk.END)
                 text_message.insert('1.0', out.read())
         except (FileNotFoundError, PermissionError) as err:
