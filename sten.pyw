@@ -47,7 +47,7 @@ from urllib.error import URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
 
-# ~ requirements.txt ~
+# = requirements.txt =
 try:
     import numpy as np
     from PIL import Image, UnidentifiedImageError
@@ -532,7 +532,7 @@ def refresh_activate(event: tk.Event):
     entry_key.bind('<KeyRelease>', refresh)
 
     text_message['bg'] = WHITE
-    text_message['selectbackground'] = SYSTEMHIGHLIGHT
+    text_message['selectbackground'] = HIGHLIGHT
     text_message['state'] = tk.NORMAL
     text_message.bind('<ButtonPress-3>', popup)
     text_message.bind('<KeyRelease>', refresh)
@@ -637,13 +637,13 @@ def exception(*args):
 
 sys.excepthook = exception
 
-# ~ DPI AWARENESS ~
+# = DPI AWARENESS =
 PROCESS_PER_MONITOR_DPI_AWARE = 2
 PROCESS_DPI_AWARENESS = PROCESS_PER_MONITOR_DPI_AWARE
 
 windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
 
-# ~ /!\ LOGGING /!\ ~
+# = /!\ LOGGING /!\ =
 try:
     logging.basicConfig(
         filename=os.path.join(os.path.dirname(__file__), 'sten.log'),
@@ -655,10 +655,10 @@ try:
 except PermissionError:
     pass
 
-# ~ ALL ~
+# = ALL =
 ALL_ENTRY_WITH_SECRET = []
 
-# ~ Window Root ~
+# = Window Root =
 root = tk.Tk()
 root.pack_propagate(True)
 
@@ -698,13 +698,13 @@ root.option_add(pattern='*Font', value=font)
 if ZOOMED_MODE == '1':
     root.wm_state('zoomed')
 
-# ~ Menu Root ~
+# = Menu Root =
 menu = tk.Menu(root, tearoff=False)
 root.configure(menu=menu)
 
 MENU_INDEX_EDIT = 1
 
-# ~~ Menu File ~~
+# == Menu File ==
 menu_file = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='File', menu=menu_file, state=tk.NORMAL, underline=0)
 
@@ -778,7 +778,7 @@ menu_file.add_command(
     underline=1,
 )
 
-# ~~ Menu Edit ~~
+# == Menu Edit ==
 menu_edit = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Edit', menu=menu_edit, state=tk.DISABLED, underline=0)
 
@@ -862,7 +862,7 @@ menu_edit.add_command(
     underline=7,
 )
 
-# ~~ Menu Window ~~
+# == Menu Window ==
 menu_win = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Window', menu=menu_win, state=tk.NORMAL, underline=0)
 
@@ -897,7 +897,7 @@ menu_win.add_command(
     underline=0,
 )
 
-# ~~ Menu Help ~~
+# == Menu Help ==
 menu_help = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Help', menu=menu_help, state=tk.NORMAL, underline=0)
 
@@ -934,7 +934,7 @@ menu_help.add_command(
     underline=0,
 )
 
-# ~ Region Root ~
+# = Region Root =
 region = tk.Frame(
     root,
     bd=0,
@@ -950,7 +950,7 @@ region.grid_columnconfigure(index=0, weight=0)
 region.grid_columnconfigure(index=1, weight=1)
 region.pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
 
-# ~ Region Steganography ~
+# = Region Steganography =
 region_stego = tk.Frame(
     region,
     bd=2,
@@ -962,7 +962,7 @@ region_stego.grid_configure(
     row=0, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
 
-# ~~ Button Encode ~~
+# == Button Encode ==
 button_encode = tk.Button(
     region_stego,
     activebackground=WHITE,
@@ -986,7 +986,7 @@ Hovertip(
     hover_delay=750,
 )
 
-# ~~ Button Decode ~~
+# == Button Decode ==
 button_decode = tk.Button(
     region_stego,
     activebackground=WHITE,
@@ -1010,7 +1010,7 @@ Hovertip(
     hover_delay=750,
 )
 
-# ~ Region Information ~
+# = Region Information =
 region_info = tk.Frame(
     region,
     bd=2,
@@ -1027,7 +1027,7 @@ region_info.grid_configure(
     row=0, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
 
-# ~~ Section Opened File ~~
+# == Section Opened File ==
 tk.Label(
     region_info,
     anchor=tk.CENTER,
@@ -1042,7 +1042,7 @@ tk.Entry(
     region_info,
     bd=0,
     fg=BLACK,
-    readonlybackground=SYSTEMBUTTONFACE,
+    readonlybackground=BUTTON,
     relief=tk.FLAT,
     state='readonly',
     textvariable=(VARIABLE_OPENED := tk.StringVar()),
@@ -1068,7 +1068,7 @@ Hovertip(
     hover_delay=750,
 )
 
-# ~~ Section Output File ~~
+# == Section Output File ==
 tk.Label(
     region_info,
     anchor=tk.CENTER,
@@ -1083,7 +1083,7 @@ tk.Entry(
     region_info,
     bd=0,
     fg=BLACK,
-    readonlybackground=SYSTEMBUTTONFACE,
+    readonlybackground=BUTTON,
     relief=tk.FLAT,
     state='readonly',
     textvariable=(VARIABLE_OUTPUT := tk.StringVar()),
@@ -1109,7 +1109,7 @@ Hovertip(
     hover_delay=750,
 )
 
-# ~ Region PRNG ~
+# = Region PRNG =
 region_prng = tk.LabelFrame(
     region,
     bd=2,
@@ -1124,12 +1124,12 @@ region_prng.grid_configure(
     row=1, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
 
-# ~~ PRNG Seed ~~
+# == PRNG Seed ==
 entry_prng = tk.Entry(
     region_prng,
     bd=0,
     bg=WHITE,
-    disabledbackground=SYSTEMBUTTONFACE,
+    disabledbackground=BUTTON,
     fg=BLACK,
     relief=tk.FLAT,
     show=KEY_MASK,
@@ -1147,7 +1147,7 @@ Hovertip(
 
 ALL_ENTRY_WITH_SECRET.append(entry_prng)
 
-# ~ Region Cryptography ~
+# = Region Cryptography =
 region_crypto = tk.LabelFrame(
     region,
     bd=2,
@@ -1162,7 +1162,7 @@ region_crypto.grid_configure(
     row=2, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
 
-# ~~ Ciphers ~~
+# == Ciphers ==
 box_ciphers = Combobox(
     region_crypto,
     background=WHITE,
@@ -1180,7 +1180,7 @@ Hovertip(
     hover_delay=750,
 )
 
-# ~~ Cipher Key ~~
+# == Cipher Key ==
 name_vcmd = {
     name: (root.register(cipher.validate), *cipher.code)
     for name, cipher in crypto.ciphers.items()
@@ -1190,7 +1190,7 @@ entry_key = tk.Entry(
     region_crypto,
     bd=0,
     bg=WHITE,
-    disabledbackground=SYSTEMBUTTONFACE,
+    disabledbackground=BUTTON,
     fg=BLACK,
     relief=tk.FLAT,
     show=KEY_MASK,
@@ -1210,7 +1210,7 @@ Hovertip(
 
 ALL_ENTRY_WITH_SECRET.append(entry_key)
 
-# ~ Region LSB ~
+# = Region LSB =
 region_lsb = tk.LabelFrame(
     region,
     bd=2,
@@ -1225,7 +1225,7 @@ region_lsb.grid_configure(
     row=3, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
 
-# ~~ n-LSB ~~
+# == n-LSB ==
 band_scale = {
     0: tk.Scale(region_lsb, fg=BLACK, from_=B, to=0, troughcolor=RED),
     1: tk.Scale(region_lsb, fg=BLACK, from_=B, to=0, troughcolor=GREEN),
@@ -1245,7 +1245,7 @@ for scale in band_scale.values():
         expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.LEFT
     )
 
-# ~ Region Message ~
+# = Region Message =
 left_limit = string.Template('$left/$limit')
 
 region_msg = tk.LabelFrame(
@@ -1262,14 +1262,14 @@ region_msg.grid_configure(
     row=1, rowspan=3, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
 
-# ~~ Message ~~
+# == Message ==
 text_message = ScrolledText(
     region_msg,
     bd=0,
-    bg=SYSTEMBUTTONFACE,
+    bg=BUTTON,
     fg=BLACK,
     relief=tk.FLAT,
-    selectbackground=SYSTEMBUTTONFACE,
+    selectbackground=BUTTON,
     state=tk.DISABLED,
     tabs=1,
     undo=True,
