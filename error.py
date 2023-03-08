@@ -2,7 +2,7 @@
 
 
 class StenException(Exception):
-    """Base class for all Sten exceptions."""
+    """The base class for all Sten exceptions."""
 
 
 class CryptoExceptionGroup(StenException):
@@ -10,12 +10,12 @@ class CryptoExceptionGroup(StenException):
 
 
 class MatrixNotInvertibleException(CryptoExceptionGroup):
-    """Matrix not invertible."""
+    pass
 
 
 class NotCoPrimeException(CryptoExceptionGroup):
-    """Not co-prime."""
+    pass
 
 
 class ZeroShiftException(CryptoExceptionGroup):
-    """Zero shift."""
+    pass
