@@ -58,11 +58,7 @@ except ModuleNotFoundError as ex:
 
 import crypto
 import icons
-from config import (
-    CONFIRM_EXIT,
-    KEY_MASK,
-    ZOOMED_MODE,
-)
+from config import CONFIRM_EXIT, KEY_MASK, ZOOMED_MODE
 from consts import *
 from error import CryptoExceptionGroup
 from utils import splitext
