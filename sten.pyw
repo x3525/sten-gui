@@ -1,5 +1,3 @@
-# pylint: disable=wrong-import-order
-
 """Sten — LSB-based image steganography tool.
 
 Copyright (C) 2023  Serhat Çelik
