@@ -42,7 +42,6 @@ from tkinter.messagebox import (
 )
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Combobox
-from typing import Optional
 from urllib.error import URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
@@ -94,7 +93,7 @@ class Picture:
     properties: list[str]
 
 
-def open_file(event: tk.Event) -> Optional[str]:
+def open_file(event: tk.Event) -> str | None:
     """Open a picture file."""
     bg_old = button_open['bg']  # Backup
     button_open['bg'] = WHITE
@@ -183,7 +182,7 @@ def open_file(event: tk.Event) -> Optional[str]:
     return 'break'  # No more event processing for "VIRTUAL_EVENT_OPEN_FILE"
 
 
-def open_text(event: tk.Event) -> Optional[str]:
+def open_text(event: tk.Event) -> str | None:
     """Read the contents of a file as text."""
     retry = True
     while retry:
@@ -480,7 +479,7 @@ def reset():
 
 
 def check_for_updates():
-    """Check for the application updates."""
+    """Check for the program updates."""
     try:
         with urlopen(URL_LATEST_VERSION, timeout=10.0) as answer:  # nosec
             latest = urlparse(answer.url).path.rstrip('/').rpartition('/')[-1]
@@ -490,14 +489,14 @@ def check_for_updates():
         if __version__ != latest:
             yes = askokcancel(
                 title='Update',
-                message='Update available. Download now?',
+                message='Update available. Download?',
                 detail=f'Latest version: {latest}',
                 icon='warning',
             )
             if yes:
                 webbrowser.open_new_tab(urljoin(URL_ARCHIVE, f'{latest}.zip'))
         else:
-            showinfo(title='Update', message='You have the latest version.')
+            showinfo(title='Update', message='Up to date!')
 
 
 def refresh_activate(event: tk.Event):
@@ -626,7 +625,7 @@ def exception(*args):
     showerror(
         title='Fatal',
         message=f'An unhandled exception has occurred: {args}',
-        detail='(The application will now exit)',
+        detail='(The program will now close)',
     )
     sys.exit(-1)  # This line of code is important!
 
