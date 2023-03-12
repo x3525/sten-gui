@@ -5,7 +5,6 @@
 # = URLs =
 URL = 'https://github.com/serhatcelik/sten'  # No trailing slash!
 URL_ARCHIVE = f'{URL}/archive/refs/tags/'  # Do not remove the trailing slash!
-URL_CHANGELOG = f'{URL}/blob/main/CHANGELOG'
 URL_LATEST_VERSION = f'{URL}/releases/latest'
 
 # = Extensions =
