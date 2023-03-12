@@ -516,6 +516,8 @@ def refresh_activate(event: tk.Event):
     root.bind(VIRTUAL_EVENT_CUT, refresh)
     root.bind(VIRTUAL_EVENT_PASTE, refresh)
 
+    menu_win.entryconfigure(MENU_ITEM_INDEX_SHOW_SECRETS, state=tk.NORMAL)
+
     entry_prng['state'] = tk.NORMAL
 
     box_ciphers['state'] = 'readonly'
@@ -859,6 +861,8 @@ menu_edit.add_command(
 menu_win = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Window', menu=menu_win, state=tk.NORMAL, underline=0)
 
+MENU_ITEM_INDEX_SHOW_SECRETS = 3
+
 ICON_RESET = tk.PhotoImage(data=icons.ICON_DATA_RESET)
 
 menu_win.add_checkbutton(
@@ -877,7 +881,7 @@ menu_win.add_separator()
 menu_win.add_checkbutton(
     command=toggle_show_secrets,
     label='Show Secrets',
-    state=tk.NORMAL,
+    state=tk.DISABLED,
     underline=5,
 )
 menu_win.add_separator()
