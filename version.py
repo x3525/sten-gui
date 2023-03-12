@@ -1,3 +1,3 @@
 """This file contains the current version of Sten."""
 
-__version__ = '0.5'
+__version__ = '0.1'
