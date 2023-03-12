@@ -42,7 +42,6 @@ class _Cipher(ABC):
     code: tuple[_TVCMDCode, _TVCMDCode]
 
     def __init__(self, text: str):
-        """Prepare the given plain/cipher text."""
         self._text = text
 
     @property
@@ -52,7 +51,6 @@ class _Cipher(ABC):
 
     @text.setter
     def text(self, value: str):
-        """Setter for plain/cipher text."""
         self._text = value
 
     @staticmethod
@@ -76,7 +74,6 @@ class _NotACipher(_Cipher):
     code = ('%d', '%S')
 
     def __init__(self, key: str, text: str = ''):
-        """Prepare the given cipher key."""
         super().__init__(text)
 
         self._key = key
@@ -102,7 +99,6 @@ class _Caesar(_Cipher):
     code = ('%d', '%S')
 
     def __init__(self, key: str, text: str = ''):
-        """Prepare the given cipher key."""
         super().__init__(text)
 
         self._key = int(key)
@@ -147,7 +143,6 @@ class _Hill(_Cipher):
     code = ('%d', '%S')
 
     def __init__(self, key: str, text: str = ''):
-        """Prepare the given cipher key."""
         super().__init__(text)
 
         self._row = math.ceil(math.sqrt(len(key)))
@@ -226,7 +221,6 @@ class _Scytale(_Cipher):
     code = ('%d', '%P')
 
     def __init__(self, key: str, text: str = ''):
-        """Prepare the given cipher key."""
         super().__init__(text)
 
         self._key = int(key)
@@ -264,7 +258,6 @@ class _Vigenere(_Cipher):
     code = ('%d', '%S')
 
     def __init__(self, key: str, text: str = ''):
-        """Prepare the given cipher key."""
         super().__init__(text)
 
         self._key = key
