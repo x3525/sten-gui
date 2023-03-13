@@ -624,7 +624,7 @@ def exception(*args):
     """Report callback exception."""
     logging.critical(args, exc_info=(args[0], args[1], args[2]))
     showerror(
-        title='Fatal',
+        title='Fatal Error',
         message=f'An unhandled exception has occurred: {args}',
         detail='(The program will now close)',
     )
