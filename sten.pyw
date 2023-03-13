@@ -26,6 +26,7 @@ import sys
 import tkinter as tk
 import warnings
 import webbrowser
+from contextlib import suppress
 from ctypes import windll
 from dataclasses import dataclass
 from idlelib.tooltip import Hovertip  # type: ignore
@@ -639,7 +640,7 @@ PROCESS_DPI_AWARENESS = PROCESS_PER_MONITOR_DPI_AWARE
 windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
 
 # = /!\ LOGGING /!\ =
-try:
+with suppress(PermissionError):
     logging.basicConfig(
         filename=os.path.join(os.path.dirname(__file__), 'sten.log'),
         filemode='a',
@@ -647,8 +648,6 @@ try:
         datefmt='%m/%d/%Y %I:%M %p',
         level=logging.WARNING,
     )
-except PermissionError:
-    pass
 
 # = ALL =
 ALL_ENTRY_WITH_SECRET = []
@@ -1271,7 +1270,5 @@ text_message.pack_configure(
 )
 
 if __name__ == '__main__':
-    try:
+    with suppress(KeyboardInterrupt):
         root.mainloop()
-    except KeyboardInterrupt:
-        pass
