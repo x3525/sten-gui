@@ -56,7 +56,7 @@ except ModuleNotFoundError as ex:
 
 import crypto
 import icons
-from config import CONFIRM_EXIT, KEY_MASK, ZOOMED_MODE
+from config import CONFIRM_EXIT, MASK_KEY, MODE_ZOOMED
 from consts import *
 from error import CryptoExceptionGroup
 from utils import splitext
@@ -413,7 +413,7 @@ def properties():
 
 def close():
     """Destroy the main window."""
-    if CONFIRM_EXIT == '1':
+    if CONFIRM_EXIT:
         yes = askokcancel(
             title='Confirm Exit',
             message='Are you sure you want to exit?',
@@ -465,12 +465,12 @@ def toggle_transparent():
 def toggle_show_secrets():
     """Toggle "Show Secrets" state."""
     for entry in ALL_ENTRY_WITH_SECRET:
-        entry['show'] = '' if (entry['show'] != '') else KEY_MASK
+        entry['show'] = '' if (entry['show'] != '') else MASK_KEY
 
 
 def reset():
     """Reset window."""
-    if ZOOMED_MODE == '1':
+    if MODE_ZOOMED:
         root.wm_state('zoomed')
     else:
         root.wm_state(tk.NORMAL)
@@ -689,7 +689,7 @@ root.wm_geometry(GEOMETRY)
 font = Font(family='Consolas', size=9, weight='normal')
 root.option_add(pattern='*Font', value=font)
 
-if ZOOMED_MODE == '1':
+if MODE_ZOOMED:
     root.wm_state('zoomed')
 
 # = Menu Root =
@@ -1122,7 +1122,7 @@ entry_prng = tk.Entry(
     disabledbackground=BUTTON,
     fg=BLACK,
     relief=tk.FLAT,
-    show=KEY_MASK,
+    show=MASK_KEY,
     state=tk.DISABLED,
 )
 entry_prng.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')  # No paste
@@ -1183,7 +1183,7 @@ entry_key = tk.Entry(
     disabledbackground=BUTTON,
     fg=BLACK,
     relief=tk.FLAT,
-    show=KEY_MASK,
+    show=MASK_KEY,
     state=tk.DISABLED,
     validate='key',
     validatecommand=name_vcmd[box_ciphers.get()],
