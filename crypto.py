@@ -294,10 +294,10 @@ class _Vigenere(_Cipher):
         return text
 
 
-ciphers: dict[str, type[_Cipher]] = {
+ciphers = {
     (NAC := _NotACipher.name): _NotACipher,
     (CAESAR := _Caesar.name): _Caesar,
     (HILL := _Hill.name): _Hill,
     (SCYTALE := _Scytale.name): _Scytale,
     (VIGENERE := _Vigenere.name): _Vigenere,
-}
+}  # type: dict[str, type[_Cipher]]
