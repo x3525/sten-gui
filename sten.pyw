@@ -74,7 +74,7 @@ class Globals:
 
     ch_limit: int
 
-    is_bound = False  # type: bool
+    is_bound: bool = False
 
 
 @dataclass
