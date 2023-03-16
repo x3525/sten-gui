@@ -50,8 +50,8 @@ class _Cipher(ABC):
         return self._text
 
     @text.setter
-    def text(self, value: str):
-        self._text = value
+    def text(self, text: str):
+        self._text = text
 
     @staticmethod
     @abstractmethod
