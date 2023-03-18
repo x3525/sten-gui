@@ -73,13 +73,13 @@ class _NotACipher(_Cipher):
     name = ''
     code = ('%d', '%S')
 
-    def __init__(self, key: str, text: str = ''):
+    def __init__(self, key: str, text=''):
         super().__init__(text)
 
         self._key = key
 
     @staticmethod
-    def validate(action: _TVCMDCode, data: _TVCMDCode) -> bool:
+    def validate(action, data) -> bool:
         """Validate command."""
         return False
 
@@ -98,7 +98,7 @@ class _Caesar(_Cipher):
     name = 'Caesar'
     code = ('%d', '%S')
 
-    def __init__(self, key: str, text: str = ''):
+    def __init__(self, key: str, text=''):
         super().__init__(text)
 
         self._key = int(key)
@@ -107,7 +107,7 @@ class _Caesar(_Cipher):
             raise ZeroShiftException('Key error. Shift value is equal to 0.')
 
     @staticmethod
-    def validate(action: _TVCMDCode, data: _TVCMDCode) -> bool:
+    def validate(action, data) -> bool:
         """Validate command."""
         return (action == _DELETE) or data.isdigit()
 
@@ -142,7 +142,7 @@ class _Hill(_Cipher):
     name = 'Hill'
     code = ('%d', '%S')
 
-    def __init__(self, key: str, text: str = ''):
+    def __init__(self, key: str, text=''):
         super().__init__(text)
 
         self._row = math.ceil(math.sqrt(len(key)))
@@ -163,7 +163,7 @@ class _Hill(_Cipher):
         self._det_inv = pow(determinant, -1, _ALPHABET_LEN)
 
     @staticmethod
-    def validate(action: _TVCMDCode, data: _TVCMDCode) -> bool:
+    def validate(action, data) -> bool:
         """Validate command."""
         return (action == _DELETE) or (data in _ALPHABET)
 
@@ -220,13 +220,13 @@ class _Scytale(_Cipher):
     name = 'Scytale'
     code = ('%d', '%P')
 
-    def __init__(self, key: str, text: str = ''):
+    def __init__(self, key: str, text=''):
         super().__init__(text)
 
         self._key = int(key)
 
     @staticmethod
-    def validate(action: _TVCMDCode, data: _TVCMDCode) -> bool:
+    def validate(action, data) -> bool:
         """Validate command."""
         return (action == _DELETE) or bool(re.match(r'[1-9]\d*$', data))
 
@@ -257,13 +257,13 @@ class _Vigenere(_Cipher):
     name = 'Vigenère'
     code = ('%d', '%S')
 
-    def __init__(self, key: str, text: str = ''):
+    def __init__(self, key: str, text=''):
         super().__init__(text)
 
         self._key = key
 
     @staticmethod
-    def validate(action: _TVCMDCode, data: _TVCMDCode) -> bool:
+    def validate(action, data) -> bool:
         """Validate command."""
         return (action == _DELETE) or (data in _ALPHABET)
 
