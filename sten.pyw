@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with Sten.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import itertools
 import logging
 import math
 import os
@@ -30,6 +29,7 @@ from contextlib import suppress
 from ctypes import windll
 from dataclasses import dataclass
 from idlelib.tooltip import Hovertip  # type: ignore
+from itertools import product
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.font import Font
 from tkinter.messagebox import (
@@ -41,6 +41,7 @@ from tkinter.messagebox import (
 )
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Combobox
+from typing import NoReturn
 from urllib.error import URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
@@ -226,7 +227,7 @@ def encode(event: tk.Event):
     if DELIMITER in message:
         showwarning(
             title='Encode',
-            message='Message contains the delimiter. Some data will be lost.',
+            message='Message contains the delimiter. Some data will be lost!',
             detail=f'Delimiter: {DELIMITER}',
         )
 
@@ -289,7 +290,8 @@ def encode(event: tk.Event):
         random.shuffle(pixels)
 
     i = 0
-    for pix, (band, lsb) in itertools.product(pixels, Globals.band_lsb):
+
+    for pix, (band, lsb) in product(pixels, Globals.band_lsb):
         if i >= bits_len:
             break
 
@@ -317,7 +319,7 @@ def encode(event: tk.Event):
 
     button_show['state'] = tk.NORMAL
 
-    showinfo(title='Encode', message='File is encoded.')
+    showinfo(title='Encode', message='File is encoded!')
 
 
 def decode(event: tk.Event):
@@ -359,9 +361,9 @@ def decode(event: tk.Event):
         random.seed(seed)
         random.shuffle(pixels)
 
-    bits = ''
-    message = ''
-    for pix, (band, lsb) in itertools.product(pixels, Globals.band_lsb):
+    bits, message = '', ''
+
+    for pix, (band, lsb) in product(pixels, Globals.band_lsb):
         if message.endswith(DELIMITER):
             break
 
@@ -395,7 +397,7 @@ def decode(event: tk.Event):
 
     button_show['state'] = tk.NORMAL
 
-    showinfo(title='Decode', message='File is decoded.')
+    showinfo(title='Decode', message='File is decoded!')
 
 
 def show():
@@ -413,15 +415,14 @@ def properties():
 
 def close():
     """Destroy the main window."""
-    if CONFIRM_EXIT:
-        yes = askokcancel(
+    if not CONFIRM_EXIT:
+        root.destroy()
+        return
+    if askokcancel(
             title='Confirm Exit',
             message='Are you sure you want to exit?',
             detail='(You can change this behaviour in configuration file)',
-        )
-        if yes:
-            root.destroy()
-    else:
+    ):
         root.destroy()
 
 
@@ -441,7 +442,7 @@ def manipulate(v_event: str):
 
 
 def popup(event: tk.Event):
-    """Context menu."""
+    """Show context menu."""
     event.widget.focus_set()
 
     try:
@@ -470,10 +471,7 @@ def toggle_show_secrets():
 
 def reset():
     """Reset window."""
-    if MODE_ZOOMED:
-        root.wm_state('zoomed')
-    else:
-        root.wm_state(tk.NORMAL)
+    root.wm_state('zoomed' if MODE_ZOOMED else tk.NORMAL)
     root.wm_geometry(GEOMETRY)
 
 
@@ -485,17 +483,16 @@ def check_for_updates():
     except URLError as err:
         showerror(title='Update', message=str(err))
     else:
-        if __version__ != latest:
-            yes = askokcancel(
+        if __version__ == latest:
+            showinfo(title='Update', message='Up to date!')
+            return
+        if askokcancel(
                 title='Update',
                 message='Update available. Download?',
                 detail=f'Latest version: {latest}',
                 icon='warning',
-            )
-            if yes:
-                webbrowser.open_new_tab(urljoin(URL_ARCHIVE, f'{latest}.zip'))
-        else:
-            showinfo(title='Update', message='Up to date!')
+        ):
+            webbrowser.open_new_tab(urljoin(URL_ARCHIVE, f'{latest}.zip'))
 
 
 def refresh_activate(event: tk.Event):
@@ -620,7 +617,7 @@ def refresh(event: tk.Event):
     Globals.ch_limit = ch_limit
 
 
-def exception(*args):
+def exception(*args) -> NoReturn:
     """Report callback exception."""
     logging.critical(args, exc_info=(args[0], args[1], args[2]))
     showerror(
@@ -783,7 +780,7 @@ ICON_COPY = tk.PhotoImage(data=icons.ICON_DATA_COPY)
 ICON_PASTE = tk.PhotoImage(data=icons.ICON_DATA_PASTE)
 ICON_SELECT_ALL = tk.PhotoImage(data=icons.ICON_DATA_SELECT_ALL)
 
-# Remove all defaults...
+# Delete all defaults...
 root.event_delete(VIRTUAL_EVENT_UNDO)
 root.event_delete(VIRTUAL_EVENT_REDO)
 root.event_delete(VIRTUAL_EVENT_CUT)
@@ -1188,7 +1185,7 @@ entry_key = tk.Entry(
     validate='key',
     validatecommand=name_vcmd[box_ciphers.get()],
 )
-entry_key.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')  # No paste
+entry_key.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')
 entry_key.pack_configure(
     expand=True, fill=tk.BOTH, ipady=IPADY, padx=PADX, pady=PADY, side=tk.TOP
 )
@@ -1270,5 +1267,4 @@ text_message.pack_configure(
 )
 
 if __name__ == '__main__':
-    with suppress(KeyboardInterrupt):
-        root.mainloop()
+    root.mainloop()

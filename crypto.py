@@ -1,11 +1,11 @@
 """Ciphers."""
 
-import itertools
 import math
 import operator
 import re
 import string
 from abc import ABC, abstractmethod
+from itertools import product
 from typing import Literal
 
 import numpy as np
@@ -17,8 +17,7 @@ from error import (
     ZeroShiftException,
 )
 
-_ALPHABET = string.printable
-_ALPHABET_LEN = len(_ALPHABET)
+_ALPHABET_LEN = len(_ALPHABET := string.printable)
 
 # = Custom Type Hints =
 _TIntArray = NDArray[np.int32]
@@ -79,15 +78,15 @@ class _NotACipher(_Cipher):
         self._key = key
 
     @staticmethod
-    def validate(action, data) -> bool:
+    def validate(action, data):
         """Validate command."""
         return False
 
-    def encrypt(self) -> str:
+    def encrypt(self):
         """Encrypt."""
         return self.text
 
-    def decrypt(self) -> str:
+    def decrypt(self):
         """Decrypt."""
         return self.text
 
@@ -107,15 +106,15 @@ class _Caesar(_Cipher):
             raise ZeroShiftException('Key error. Shift value is equal to 0.')
 
     @staticmethod
-    def validate(action, data) -> bool:
+    def validate(action, data):
         """Validate command."""
         return (action == _DELETE) or data.isdigit()
 
-    def encrypt(self) -> str:
+    def encrypt(self):
         """Encrypt."""
         return self._do_it('+')
 
-    def decrypt(self) -> str:
+    def decrypt(self):
         """Decrypt."""
         return self._do_it('-')
 
@@ -127,6 +126,7 @@ class _Caesar(_Cipher):
         }
 
         text = ''
+
         for char in self.text:
             c_idx_text = _ALPHABET.index(char)
             c_idx_key = self._key
@@ -163,7 +163,7 @@ class _Hill(_Cipher):
         self._det_inv = pow(determinant, -1, _ALPHABET_LEN)
 
     @staticmethod
-    def validate(action, data) -> bool:
+    def validate(action, data):
         """Validate command."""
         return (action == _DELETE) or (data in _ALPHABET)
 
@@ -179,9 +179,9 @@ class _Hill(_Cipher):
 
         row, col = orders[order](*shape)
 
-        fill = 0
-        idx = 0
-        for i, j in itertools.product(range(row), range(col)):
+        fill, idx = 0, 0
+
+        for i, j in product(range(row), range(col)):
             if idx == len(vals):
                 matrix[orders[order](i, j)] = fill
                 fill += 1
@@ -203,11 +203,11 @@ class _Hill(_Cipher):
 
         return np.concatenate(m_transposed) % _ALPHABET_LEN
 
-    def encrypt(self) -> str:
+    def encrypt(self):
         """Encrypt."""
         return ''.join(_ALPHABET[_] for _ in self._m_multiply(self._key))
 
-    def decrypt(self) -> str:
+    def decrypt(self):
         """Decrypt."""
         m_inv = np.array(np.around(self._m_adj * self._det_inv))
 
@@ -226,15 +226,15 @@ class _Scytale(_Cipher):
         self._key = int(key)
 
     @staticmethod
-    def validate(action, data) -> bool:
+    def validate(action, data):
         """Validate command."""
         return (action == _DELETE) or bool(re.match(r'[1-9]\d*$', data))
 
-    def encrypt(self) -> str:
+    def encrypt(self):
         """Encrypt."""
         return ''.join(self.text[_::self._key] for _ in range(self._key))
 
-    def decrypt(self) -> str:
+    def decrypt(self):
         """Decrypt."""
         rows_, mod = divmod(len(self.text), self._key)
 
@@ -243,6 +243,7 @@ class _Scytale(_Cipher):
         middle = rows * mod
 
         text = []
+
         for row in range(rows_):
             text.append(self.text[row:middle:rows])
             text.append(self.text[(middle + row)::rows_])
@@ -263,15 +264,15 @@ class _Vigenere(_Cipher):
         self._key = key
 
     @staticmethod
-    def validate(action, data) -> bool:
+    def validate(action, data):
         """Validate command."""
         return (action == _DELETE) or (data in _ALPHABET)
 
-    def encrypt(self) -> str:
+    def encrypt(self):
         """Encrypt."""
         return self._do_it('+')
 
-    def decrypt(self) -> str:
+    def decrypt(self):
         """Decrypt."""
         return self._do_it('-')
 
@@ -285,6 +286,7 @@ class _Vigenere(_Cipher):
         key = iter((self._key * len(self.text))[:len(self.text)])
 
         text = ''
+
         for char in self.text:
             c_idx_text = _ALPHABET.index(char)
             c_idx_key = _ALPHABET.index(next(key))
