@@ -709,8 +709,7 @@ ICON_ENCODE = tk.PhotoImage(data=icons.ICON_DATA_ENCODE)
 ICON_DECODE = tk.PhotoImage(data=icons.ICON_DATA_DECODE)
 ICON_IMAGE_PROPERTIES = tk.PhotoImage(data=icons.ICON_DATA_IMAGE_PROPERTIES)
 
-# Stay away from <Control-Key-o> key sequence! Read 28.:
-# https://www.tcl.tk/man/tcl/TkCmd/text.html#M192
+# Stay away from <Control-Key-o> key sequence!
 root.event_add(VIRTUAL_EVENT_OPEN_FILE, *SEQUENCE_OPEN_FILE)
 root.event_add(VIRTUAL_EVENT_ENCODE, *SEQUENCE_ENCODE)
 root.event_add(VIRTUAL_EVENT_DECODE, *SEQUENCE_DECODE)
