@@ -471,7 +471,7 @@ def reset():
 
 
 def check_for_updates():
-    """Check for the program updates."""
+    """Check for program updates."""
     try:
         with urlopen(URL_LATEST_VERSION, timeout=10.0) as answer:  # nosec
             latest = urlparse(answer.url).path.rstrip('/').rpartition('/')[-1]
