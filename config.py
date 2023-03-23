@@ -1,9 +1,9 @@
 """Configuration module."""
 
-import configparser
 import os
+from configparser import ConfigParser
 
-config = configparser.ConfigParser()
+config = ConfigParser()
 
 config.read(os.path.join(os.path.dirname(__file__), 'sten.conf'))
 

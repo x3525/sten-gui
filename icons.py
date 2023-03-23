@@ -1,5 +1,7 @@
 """Icons converted to Base64 string."""
 
+# no imports
+
 ICON_DATA_STEN = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAABGSURBVDhPlchBCgAwDALB/P/TLV48yGJaGMjGmTmf8l/lv3J5QVBeEJQXBJVXauWVWnmlVl6p5QVBeUFQXhDVo/xX+VdzLgZ2/wHw7vJ0AAAAAElFTkSuQmCC'
 
 # = Icons made by Google from www.flaticon.com =

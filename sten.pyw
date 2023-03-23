@@ -51,10 +51,10 @@ from PIL import Image, UnidentifiedImageError
 from numpy.typing import NDArray
 
 import crypto
-import icons
 from config import CONFIRM_EXIT, MASK_KEY, MODE_ZOOMED
 from consts import *
 from error import CryptoExceptionGroup
+from icons import *
 from utils import splitext
 from version import __version__
 
@@ -652,7 +652,7 @@ root.report_callback_exception = exception
 
 root.wm_protocol('WM_DELETE_WINDOW', close)
 
-root.wm_iconphoto(True, tk.PhotoImage(data=icons.ICON_DATA_STEN))
+root.wm_iconphoto(True, tk.PhotoImage(data=ICON_DATA_STEN))
 windll.shell32.SetCurrentProcessExplicitAppUserModelID('GIBBERISH')  # Taskbar
 
 root.wm_title(f'Sten {__version__}')
@@ -699,10 +699,10 @@ MENU_ITEM_INDEX_ENCODE = 3
 MENU_ITEM_INDEX_DECODE = 4
 MENU_ITEM_INDEX_IMAGE_PROPERTIES = 6
 
-ICON_OPEN_FILE = tk.PhotoImage(data=icons.ICON_DATA_OPEN_FILE)
-ICON_ENCODE = tk.PhotoImage(data=icons.ICON_DATA_ENCODE)
-ICON_DECODE = tk.PhotoImage(data=icons.ICON_DATA_DECODE)
-ICON_IMAGE_PROPERTIES = tk.PhotoImage(data=icons.ICON_DATA_IMAGE_PROPERTIES)
+ICON_OPEN_FILE = tk.PhotoImage(data=ICON_DATA_OPEN_FILE)
+ICON_ENCODE = tk.PhotoImage(data=ICON_DATA_ENCODE)
+ICON_DECODE = tk.PhotoImage(data=ICON_DATA_DECODE)
+ICON_IMAGE_PROPERTIES = tk.PhotoImage(data=ICON_DATA_IMAGE_PROPERTIES)
 
 # Stay away from <Control-Key-o> key sequence!
 root.event_add(VIRTUAL_EVENT_OPEN_FILE, *SEQUENCE_OPEN_FILE)
@@ -767,12 +767,12 @@ menu_file.add_command(
 menu_edit = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Edit', menu=menu_edit, state=tk.DISABLED, underline=0)
 
-ICON_UNDO = tk.PhotoImage(data=icons.ICON_DATA_UNDO)
-ICON_REDO = tk.PhotoImage(data=icons.ICON_DATA_REDO)
-ICON_CUT = tk.PhotoImage(data=icons.ICON_DATA_CUT)
-ICON_COPY = tk.PhotoImage(data=icons.ICON_DATA_COPY)
-ICON_PASTE = tk.PhotoImage(data=icons.ICON_DATA_PASTE)
-ICON_SELECT_ALL = tk.PhotoImage(data=icons.ICON_DATA_SELECT_ALL)
+ICON_UNDO = tk.PhotoImage(data=ICON_DATA_UNDO)
+ICON_REDO = tk.PhotoImage(data=ICON_DATA_REDO)
+ICON_CUT = tk.PhotoImage(data=ICON_DATA_CUT)
+ICON_COPY = tk.PhotoImage(data=ICON_DATA_COPY)
+ICON_PASTE = tk.PhotoImage(data=ICON_DATA_PASTE)
+ICON_SELECT_ALL = tk.PhotoImage(data=ICON_DATA_SELECT_ALL)
 
 # Delete all defaults...
 root.event_delete(VIRTUAL_EVENT_UNDO)
@@ -853,7 +853,7 @@ menu.add_cascade(label='Window', menu=menu_win, state=tk.NORMAL, underline=0)
 
 MENU_ITEM_INDEX_SHOW_SECRETS = 0
 
-ICON_RESET = tk.PhotoImage(data=icons.ICON_DATA_RESET)
+ICON_RESET = tk.PhotoImage(data=ICON_DATA_RESET)
 
 menu_win.add_checkbutton(
     command=toggle_show_secrets,
@@ -888,8 +888,8 @@ menu_win.add_command(
 menu_help = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='Help', menu=menu_help, state=tk.NORMAL, underline=0)
 
-ICON_ABOUT = tk.PhotoImage(data=icons.ICON_DATA_ABOUT)
-ICON_WEB_SITE = tk.PhotoImage(data=icons.ICON_DATA_WEB_SITE)
+ICON_ABOUT = tk.PhotoImage(data=ICON_DATA_ABOUT)
+ICON_WEB_SITE = tk.PhotoImage(data=ICON_DATA_WEB_SITE)
 
 menu_help.add_command(
     command=lambda: webbrowser.open_new_tab(URL),

@@ -1,6 +1,6 @@
 """This file contains constants."""
 
-# Do not use any imports!
+# no imports
 
 # = URLs =
 URL = 'https://github.com/serhatcelik/sten'  # No trailing slash!
