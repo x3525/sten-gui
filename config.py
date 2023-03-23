@@ -3,11 +3,11 @@
 import os
 from configparser import ConfigParser
 
-config = ConfigParser()
+parser = ConfigParser()
 
-config.read(os.path.join(os.path.dirname(__file__), 'sten.conf'))
+parser.read(os.path.join(os.path.dirname(__file__), 'sten.conf'))
 
-config_default = {
+config = {
     (section_preferences := 'PREFERENCES'): {
         (option_confirm_exit := 'ConfirmExit'): '1',
         (option_mask_key := 'MaskKey'): '*',
@@ -15,14 +15,14 @@ config_default = {
     },
 }
 
-for section, option_default in config_default.items():
-    if not config.has_section(section):
-        config[section] = option_default
+for section, option_default in config.items():
+    if not parser.has_section(section):
+        parser[section] = option_default
     else:
         for option, default in option_default.items():
-            if not config.has_option(section, option):
-                config[section][option] = default
+            if not parser.has_option(section, option):
+                parser[section][option] = default
 
-CONFIRM_EXIT = config[section_preferences][option_confirm_exit] == '1'
-MASK_KEY = config[section_preferences][option_mask_key]
-MODE_ZOOMED = config[section_preferences][option_mode_zoomed] == '1'
+CONFIRM_EXIT = parser[section_preferences][option_confirm_exit] == '1'
+MASK_KEY = parser[section_preferences][option_mask_key]
+MODE_ZOOMED = parser[section_preferences][option_mode_zoomed] == '1'
