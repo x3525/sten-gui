@@ -265,7 +265,6 @@ def encode(event: tk.Event):
         showerror(
             title='Encode',
             message='New ciphertext length exceeds the character limit.',
-            detail=f'Ciphertext length: {len(message)}',
         )
         return
 
