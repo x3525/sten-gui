@@ -10,8 +10,8 @@ parser.read(os.path.join(os.path.dirname(__file__), 'sten.conf'))
 config = {
     (section_preferences := 'PREFERENCES'): {
         (option_confirm_exit := 'ConfirmExit'): '1',
-        (option_key_mask := 'KeyMask'): '*',
-        (option_zoomed_mode := 'ZoomedMode'): '0',
+        (option_mask_key := 'MaskKey'): '*',
+        (option_mode_zoomed := 'ModeZoomed'): '0',
     },
 }
 
@@ -24,5 +24,5 @@ for section, option_default in config.items():
                 parser[section][option] = default
 
 CONFIRM_EXIT = parser[section_preferences][option_confirm_exit] == '1'
-KEY_MASK = parser[section_preferences][option_key_mask]
-ZOOMED_MODE = parser[section_preferences][option_zoomed_mode] == '1'
+MASK_KEY = parser[section_preferences][option_mask_key]
+MODE_ZOOMED = parser[section_preferences][option_mode_zoomed] == '1'

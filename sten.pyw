@@ -51,7 +51,7 @@ from PIL import Image, UnidentifiedImageError
 from numpy.typing import NDArray
 
 import crypto
-from config import CONFIRM_EXIT, KEY_MASK, ZOOMED_MODE
+from config import CONFIRM_EXIT, MASK_KEY, MODE_ZOOMED
 from consts import *
 from error import CryptoExceptionGroup
 from icons import *
@@ -460,12 +460,12 @@ def toggle_transparent():
 def toggle_show_secrets():
     """Toggle "Show Secrets" state."""
     for entry in ALL_ENTRY_WITH_SECRET:
-        entry['show'] = '' if (entry['show'] != '') else KEY_MASK
+        entry['show'] = '' if (entry['show'] != '') else MASK_KEY
 
 
 def reset():
     """Reset window."""
-    root.wm_state('zoomed' if ZOOMED_MODE else tk.NORMAL)
+    root.wm_state('zoomed' if MODE_ZOOMED else tk.NORMAL)
     root.wm_geometry(GEOMETRY)
 
 
@@ -680,7 +680,7 @@ root.wm_geometry(GEOMETRY)
 font = Font(family='Consolas', size=9, weight='normal')
 root.option_add(pattern='*Font', value=font)
 
-if ZOOMED_MODE:
+if MODE_ZOOMED:
     root.wm_state('zoomed')
 
 # = Menu Root =
@@ -1112,7 +1112,7 @@ entry_prng = tk.Entry(
     disabledbackground=BUTTON,
     fg=BLACK,
     relief=tk.FLAT,
-    show=KEY_MASK,
+    show=MASK_KEY,
     state=tk.DISABLED,
 )
 entry_prng.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')  # No paste
@@ -1173,7 +1173,7 @@ entry_key = tk.Entry(
     disabledbackground=BUTTON,
     fg=BLACK,
     relief=tk.FLAT,
-    show=KEY_MASK,
+    show=MASK_KEY,
     state=tk.DISABLED,
     validate='key',
     validatecommand=name_vcmd[box_ciphers.get()],
