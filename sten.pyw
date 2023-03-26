@@ -67,9 +67,7 @@ class Globals:
     """Global "control" variables for the internal module."""
 
     band_lsb: tuple[tuple[int, int], ...]
-
     ch_limit: int
-
     is_bound: bool = False
 
 

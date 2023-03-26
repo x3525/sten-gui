@@ -71,6 +71,7 @@ class NotACipher(Cipher):
 
     def __init__(self, key: str, text=''):
         super().__init__(text)
+
         self._key = key
 
     @staticmethod
@@ -218,6 +219,7 @@ class Scytale(Cipher):
 
     def __init__(self, key: str, text=''):
         super().__init__(text)
+
         self._key = int(key)
 
     @staticmethod
@@ -255,6 +257,7 @@ class Vigenere(Cipher):
 
     def __init__(self, key: str, text=''):
         super().__init__(text)
+
         self._key = key
 
     @staticmethod
