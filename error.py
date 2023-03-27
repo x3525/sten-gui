@@ -2,7 +2,7 @@
 
 
 class StenException(Exception):
-    """Base class for all Sten exceptions."""
+    """Base class for all other Sten exceptions."""
 
 
 class CryptoExceptionGroup(StenException):
