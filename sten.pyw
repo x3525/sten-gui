@@ -329,22 +329,11 @@ def decode(event: tk.Event):
 
     output = asksaveasfilename(
         confirmoverwrite=True,
-        defaultextension=EXTENSIONS_MESSAGE[0],
-        filetypes=[('Text Documents', EXTENSIONS_MESSAGE)],
+        filetypes=[('All Files', EXTENSIONS_ALL)],
         initialfile=f'{Picture.filename}-decoded',
         title='Save As — Decode',
     )
     if not output:
-        return
-
-    _, extension = splitext(output)
-
-    if extension.casefold() not in EXTENSIONS_MESSAGE:
-        showerror(
-            title='Save As — Decode',
-            message=f'Not a valid extension: {extension}',
-            detail=f'Valid extensions: {EXTENSIONS_MESSAGE_PRETTY}',
-        )
         return
 
     pixels = list(range(Picture.pixel))
