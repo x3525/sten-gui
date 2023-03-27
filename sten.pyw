@@ -53,7 +53,7 @@ from numpy.typing import NDArray
 import crypto
 from config import CONFIRM_EXIT, KEY_MASK, ZOOMED_MODE
 from consts import *
-from error import CryptoExceptionGroup
+from error import CryptoErrorGroup
 from icons import *
 from utils import splitext
 from version import __version__
@@ -231,7 +231,7 @@ def encode(event: tk.Event):
 
     try:
         cipher = crypto.ciphers[cipher_name](key)
-    except CryptoExceptionGroup as err:
+    except CryptoErrorGroup as err:
         showerror(title='Encode', message=str(err))
         return
 
@@ -323,7 +323,7 @@ def decode(event: tk.Event):
 
     try:
         cipher = crypto.ciphers[cipher_name](key)
-    except CryptoExceptionGroup as err:
+    except CryptoErrorGroup as err:
         showerror(title='Decode', message=str(err))
         return
 

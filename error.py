@@ -1,21 +1,21 @@
 """Custom exceptions."""
 
 
-class StenException(Exception):
+class StenError(Exception):
     """Base class for all other Sten exceptions."""
 
 
-class CryptoExceptionGroup(StenException):
+class CryptoErrorGroup(StenError):
     """A combination of multiple crypto exceptions."""
 
 
-class MatrixNotInvertibleException(CryptoExceptionGroup):
+class MatrixNotInvertibleError(CryptoErrorGroup):
     pass
 
 
-class NotCoPrimeException(CryptoExceptionGroup):
+class NotCoPrimeError(CryptoErrorGroup):
     pass
 
 
-class ZeroShiftException(CryptoExceptionGroup):
+class ZeroShiftError(CryptoErrorGroup):
     pass

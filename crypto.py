@@ -11,11 +11,7 @@ from typing import Literal
 import numpy as np
 from numpy.typing import NDArray
 
-from error import (
-    MatrixNotInvertibleException,
-    NotCoPrimeException,
-    ZeroShiftException,
-)
+from error import MatrixNotInvertibleError, NotCoPrimeError, ZeroShiftError
 
 ALPHABET_LEN = len(ALPHABET := string.printable)
 
@@ -100,7 +96,7 @@ class Caesar(Cipher):
         self._key = int(key)
 
         if (self._key % ALPHABET_LEN) == 0:
-            raise ZeroShiftException('Key error. Shift value is equal to 0.')
+            raise ZeroShiftError('Key error. Shift value is equal to 0.')
 
     @staticmethod
     def validate(action, data):
@@ -149,9 +145,9 @@ class Hill(Cipher):
         determinant = round(np.linalg.det(self._key))
 
         if determinant == 0:
-            raise MatrixNotInvertibleException('Key matrix is not invertible.')
+            raise MatrixNotInvertibleError('Key matrix is not invertible.')
         if math.gcd(determinant, ALPHABET_LEN) != 1:
-            raise NotCoPrimeException(
+            raise NotCoPrimeError(
                 'Key determinant and alphabet length are not co-prime.'
             )
 
