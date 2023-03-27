@@ -9,22 +9,18 @@ URL_LATEST_VERSION = f'{URL}/releases/latest'
 
 # = Extensions =
 EXTENSIONS_ALL = ['*.*']
-EXTENSIONS_MESSAGE = [
-    '.txt',
-]
-EXTENSIONS_MESSAGE_PRETTY = ' '.join(_ for _ in EXTENSIONS_MESSAGE)
 EXTENSIONS_PICTURE = [
     '.bmp',
     '.png',
 ]
-EXTENSIONS_PICTURE_PRETTY = ' '.join(_ for _ in EXTENSIONS_PICTURE)
+EXTENSIONS_PICTURE_PRETTY = '|'.join(_ for _ in EXTENSIONS_PICTURE)
 
 # = Modes =
 MODES_PICTURE = [
     'RGB',
     'RGBA',
 ]
-MODES_PICTURE_PRETTY = ' '.join(_ for _ in MODES_PICTURE)
+MODES_PICTURE_PRETTY = '|'.join(_ for _ in MODES_PICTURE)
 
 # = Colors =
 BLACK = '#000000'
