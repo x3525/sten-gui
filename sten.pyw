@@ -603,7 +603,7 @@ def exception(*args) -> NoReturn:
     logging.critical(args, exc_info=(args[0], args[1], args[2]))
     showerror(
         title='Fatal Error',
-        message=f'An unhandled exception has occurred: {args}',
+        message=f'Unhandled exception: {args}',
         detail='(The program will now close)',
     )
     sys.exit(-1)  # This line of code is important!
@@ -626,9 +626,6 @@ with suppress(PermissionError):
         datefmt='%m/%d/%Y %I:%M %p',
         level=logging.WARNING,
     )
-
-# = ALL =
-ALL_ENTRY_WITH_SECRET = []
 
 # = Window Root =
 root = tk.Tk()
@@ -1112,8 +1109,6 @@ Hovertip(
     hover_delay=750,
 )
 
-ALL_ENTRY_WITH_SECRET.append(entry_prng)
-
 # = Region Cryptography =
 region_crypto = tk.LabelFrame(
     region,
@@ -1174,8 +1169,6 @@ Hovertip(
     text='Cipher key.',
     hover_delay=750,
 )
-
-ALL_ENTRY_WITH_SECRET.append(entry_key)
 
 # = Region LSB =
 region_lsb = tk.LabelFrame(
@@ -1245,6 +1238,12 @@ text_message = ScrolledText(
 text_message.pack_configure(
     expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.TOP
 )
+
+# = ALL =
+ALL_ENTRY_WITH_SECRET = [
+    entry_prng,
+    entry_key,
+]
 
 if __name__ == '__main__':
     root.mainloop()
