@@ -18,7 +18,7 @@ ALPHABET_LEN = len(ALPHABET := string.printable)
 # = Custom Type Hints =
 TJob = Literal['+', '-']
 TOrder = Literal['ij', 'ji']
-TIntArray = NDArray[np.int32]
+TIntArr = NDArray[np.int32]
 # https://www.tcl.tk/man/tcl/TkCmd/entry.html#M16
 TVCMDCode = Literal['%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W']
 
@@ -121,10 +121,10 @@ class Caesar(Cipher):
         text = ''
 
         for char in self.text:
-            c_idx_text = ALPHABET.index(char)
-            c_idx_key = self._key
+            ch_idx_text = ALPHABET.index(char)
+            ch_idx_key = self._key
 
-            text += ALPHABET[jobs[job](c_idx_text, c_idx_key) % ALPHABET_LEN]
+            text += ALPHABET[jobs[job](ch_idx_text, ch_idx_key) % ALPHABET_LEN]
 
         return text
 
@@ -161,7 +161,7 @@ class Hill(Cipher):
         return (action == DELETE) or (data in ALPHABET)
 
     @staticmethod
-    def _m_fill(vals: str, shape: tuple[int, int], order: TOrder) -> TIntArray:
+    def _m_fill(values: str, shape: tuple[int, int], order: TOrder) -> TIntArr:
         """Create a new matrix and fill it."""
         orders = {
             'ij': lambda *given: given,
@@ -175,17 +175,17 @@ class Hill(Cipher):
         fill, idx = 0, 0
 
         for i, j in product(range(row), range(col)):
-            if idx == len(vals):
+            if idx == len(values):
                 matrix[orders[order](i, j)] = fill
                 fill += 1
                 continue
 
-            matrix[orders[order](i, j)] = ALPHABET.index(vals[idx])
+            matrix[orders[order](i, j)] = ALPHABET.index(values[idx])
             idx += 1
 
         return matrix
 
-    def _m_multiply(self, matrix: NDArray) -> TIntArray:
+    def _m_multiply(self, matrix: NDArray) -> TIntArr:
         """Multiply the given matrix by the column vectors."""
         col = math.ceil(len(self.text) / self._row)
 
@@ -240,6 +240,7 @@ class Scytale(Cipher):
         for row in range(rows_):
             text.append(self.text[row:middle:rows])
             text.append(self.text[(middle + row)::rows_])
+
         text.append(self.text[rows_:middle:rows])
 
         return ''.join(text)
@@ -281,10 +282,10 @@ class Vigenere(Cipher):
         text = ''
 
         for char in self.text:
-            c_idx_text = ALPHABET.index(char)
-            c_idx_key = ALPHABET.index(next(key))
+            ch_idx_text = ALPHABET.index(char)
+            ch_idx_key = ALPHABET.index(next(key))
 
-            text += ALPHABET[jobs[job](c_idx_text, c_idx_key) % ALPHABET_LEN]
+            text += ALPHABET[jobs[job](ch_idx_text, ch_idx_key) % ALPHABET_LEN]
 
         return text
 
