@@ -659,13 +659,11 @@ WINDOW_H_MIN = WINDOW_H
 root.wm_minsize(width=WINDOW_W_MIN, height=WINDOW_H_MIN)
 
 GEOMETRY = f'{WINDOW_W}x{WINDOW_H}-{CENTER_X}-{CENTER_Y}'
-root.wm_geometry(GEOMETRY)
+
+reset()
 
 font = Font(family='Consolas', size=9, weight='normal')
 root.option_add(pattern='*Font', value=font)
-
-if ZOOMED_MODE:
-    root.wm_state('zoomed')
 
 # = Menu Root =
 menu = tk.Menu(root, tearoff=False)
