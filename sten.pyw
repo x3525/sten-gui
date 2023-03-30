@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with Sten.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import dataclasses
 import logging
 import math
 import os
@@ -27,7 +28,6 @@ import warnings
 import webbrowser
 from contextlib import suppress
 from ctypes import windll
-from dataclasses import dataclass
 from idlelib.tooltip import Hovertip  # type: ignore
 from itertools import product
 from tkinter.filedialog import askopenfilename, asksaveasfilename
@@ -62,7 +62,7 @@ from version import __version__
 warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 
-@dataclass
+@dataclasses.dataclass
 class Globals:
     """Global "control" variables for the internal module."""
 
@@ -71,7 +71,7 @@ class Globals:
     is_bound: bool = False
 
 
-@dataclass
+@dataclasses.dataclass
 class Picture:
     """Image properties of a previously opened picture file."""
 
