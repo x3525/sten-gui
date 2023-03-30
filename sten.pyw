@@ -606,7 +606,7 @@ def exception(*args) -> NoReturn:
         message=f'Unhandled exception: {args}',
         detail='(The program will now close)',
     )
-    sys.exit(-1)  # This line of code is important!
+    os._exit(-1)  # This line of code is important!
 
 
 sys.excepthook = exception
