@@ -191,7 +191,7 @@ def open_text(event: tk.Event) -> str | None:
             with open(file, encoding='utf-8', errors='ignore') as out:
                 text_message.delete('1.0', tk.END)
                 text_message.insert('1.0', out.read())
-        except (FileNotFoundError, PermissionError) as err:
+        except OSError as err:
             retry = askretrycancel(title='Open Text', message=str(err))
             continue
         else:
@@ -301,7 +301,7 @@ def encode(event: tk.Event):
 
     try:
         Image.fromarray(array).save(output)
-    except (FileNotFoundError, PermissionError) as err:
+    except OSError as err:
         showerror(title='Save — Encode', message=str(err))
         return
 
@@ -368,7 +368,7 @@ def decode(event: tk.Event):
     try:
         with open(output, 'w', encoding='utf-8') as out:
             out.write(message)
-    except (FileNotFoundError, PermissionError) as err:
+    except OSError as err:
         showerror(title='Save — Decode', message=str(err))
         return
 
@@ -385,7 +385,7 @@ def show():
     """Show a previously encoded/decoded file."""
     try:
         os.startfile(VARIABLE_OUTPUT.get(), operation='open')  # nosec
-    except (FileNotFoundError, PermissionError) as err:
+    except OSError as err:
         showerror(title='Show', message=str(err))
 
 
