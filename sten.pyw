@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with Sten.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import ctypes
 import dataclasses
 import logging
 import math
@@ -27,7 +28,6 @@ import tkinter as tk
 import warnings
 import webbrowser
 from contextlib import suppress
-from ctypes import windll
 from idlelib.tooltip import Hovertip  # type: ignore
 from itertools import product
 from tkinter.filedialog import askopenfilename, asksaveasfilename
@@ -615,7 +615,7 @@ sys.excepthook = exception
 PROCESS_PER_MONITOR_DPI_AWARE = 2
 PROCESS_DPI_AWARENESS = PROCESS_PER_MONITOR_DPI_AWARE
 
-windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
+ctypes.windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
 
 # = /!\ LOGGING /!\ =
 with suppress(PermissionError):
@@ -636,7 +636,7 @@ root.report_callback_exception = exception
 root.wm_protocol('WM_DELETE_WINDOW', close)
 
 root.wm_iconphoto(True, tk.PhotoImage(data=ICON_DATA_STEN))
-windll.shell32.SetCurrentProcessExplicitAppUserModelID('GIBBERISH')  # Taskbar
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('taskbar')
 
 root.wm_title(f'Sten {__version__}')
 
