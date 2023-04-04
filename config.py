@@ -8,7 +8,7 @@ parser = configparser.ConfigParser()
 parser.read(os.path.join(os.path.dirname(__file__), 'sten.conf'))
 
 config = {
-    (section_preferences := 'Preferences'): {
+    (section_preferences := 'PREFERENCES'): {
         (option_confirm_exit := 'ConfirmExit'): 'yes',
         (option_key_mask := 'KeyMask'): '*',
         (option_zoomed_mode := 'ZoomedMode'): '',
