@@ -18,14 +18,14 @@ config = {
 for section, option_default in config.items():
     if not parser.has_section(section):
         parser[section] = option_default
-    else:
-        for option, default in option_default.items():
-            if parser.has_option(section, option):
-                if default not in parser.BOOLEAN_STATES:
-                    continue
-                if parser[section][option].lower() in parser.BOOLEAN_STATES:
-                    continue
-            parser[section][option] = default
+        continue
+    for option, default in option_default.items():
+        if parser.has_option(section, option):
+            if default not in parser.BOOLEAN_STATES:
+                continue
+            if parser[section][option].lower() in parser.BOOLEAN_STATES:
+                continue
+        parser[section][option] = default
 
 CONFIRM_EXIT = parser.getboolean(section_preferences, option_confirm_exit)
 KEY_MASK = parser[section_preferences][option_key_mask]
