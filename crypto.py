@@ -229,19 +229,19 @@ class Scytale(Cipher):
 
     def decrypt(self):
         """Decrypt."""
-        rows_, mod = divmod(len(self.text), self._key)
+        full, mod = divmod(len(self.text), self._key)
 
-        rows = rows_ + (mod > 0)
+        rows = full + (mod > 0)
 
         middle = rows * mod
 
         text = []
 
-        for row in range(rows_):
+        for row in range(full):
             text.append(self.text[row:middle:rows])
-            text.append(self.text[(middle + row)::rows_])
+            text.append(self.text[(middle + row)::full])
 
-        text.append(self.text[rows_:middle:rows])
+        text.append(self.text[full:middle:rows])
 
         return ''.join(text)
 
