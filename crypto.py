@@ -72,15 +72,12 @@ class NotACipher(Cipher):
 
     @staticmethod
     def validate(action, data):
-        """Validate command."""
         return False
 
     def encrypt(self):
-        """Encrypt."""
         return self.text
 
     def decrypt(self):
-        """Decrypt."""
         return self.text
 
 
@@ -100,15 +97,12 @@ class Caesar(Cipher):
 
     @staticmethod
     def validate(action, data):
-        """Validate command."""
         return (action == DELETE) or data.isdigit()
 
     def encrypt(self):
-        """Encrypt."""
         return self._do('+')
 
     def decrypt(self):
-        """Decrypt."""
         return self._do('-')
 
     def _do(self, job: TJob) -> str:
@@ -157,7 +151,6 @@ class Hill(Cipher):
 
     @staticmethod
     def validate(action, data):
-        """Validate command."""
         return (action == DELETE) or (data in ALPHABET)
 
     @staticmethod
@@ -197,11 +190,9 @@ class Hill(Cipher):
         return np.concatenate(m_transposed) % ALPHABET_LEN
 
     def encrypt(self):
-        """Encrypt."""
         return ''.join(ALPHABET[_] for _ in self._m_multiply(self._key))
 
     def decrypt(self):
-        """Decrypt."""
         m_inv = np.array(np.around(self._m_adj * self._det_inv))
 
         return ''.join(ALPHABET[_] for _ in self._m_multiply(m_inv))
@@ -220,15 +211,12 @@ class Scytale(Cipher):
 
     @staticmethod
     def validate(action, data):
-        """Validate command."""
         return (action == DELETE) or bool(re.match(r'[1-9]\d*$', data))
 
     def encrypt(self):
-        """Encrypt."""
         return ''.join(self.text[_::self._key] for _ in range(self._key))
 
     def decrypt(self):
-        """Decrypt."""
         full, mod = divmod(len(self.text), self._key)
 
         rows = full + (mod > 0)
@@ -259,15 +247,12 @@ class Vigenere(Cipher):
 
     @staticmethod
     def validate(action, data):
-        """Validate command."""
         return (action == DELETE) or (data in ALPHABET)
 
     def encrypt(self):
-        """Encrypt."""
         return self._do('+')
 
     def decrypt(self):
-        """Decrypt."""
         return self._do('-')
 
     def _do(self, job: TJob) -> str:
