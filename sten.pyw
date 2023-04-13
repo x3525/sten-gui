@@ -118,7 +118,7 @@ def open_file(event: tk.Event) -> str | None:
                 dimensions = pic.size
                 mode = pic.mode
         except (
-                FileNotFoundError, PermissionError,
+                OSError,
                 UnidentifiedImageError, Image.DecompressionBombWarning,
         ) as err:
             retry = askretrycancel(title='Open File', message=str(err))
@@ -618,7 +618,7 @@ PROCESS_DPI_AWARENESS = PROCESS_PER_MONITOR_DPI_AWARE
 ctypes.windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
 
 # = /!\ LOGGING /!\ =
-with suppress(PermissionError):
+with suppress(OSError):
     logging.basicConfig(
         filename=os.path.join(os.path.dirname(__file__), 'sten.log'),
         filemode='a',
