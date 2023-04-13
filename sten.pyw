@@ -51,12 +51,12 @@ from PIL import Image, UnidentifiedImageError
 from numpy.typing import NDArray
 
 import crypto
+from __version__ import __version__
 from config import CONFIRM_EXIT, KEY_MASK, ZOOMED_MODE
 from consts import *
 from error import CryptoErrorGroup
 from icons import *
 from utils import splitext
-from version import __version__
 
 # Turn matching warnings into exceptions
 warnings.simplefilter('error', Image.DecompressionBombWarning)
