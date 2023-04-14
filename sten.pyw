@@ -456,7 +456,7 @@ def reset():
     root.wm_geometry(GEOMETRY)
 
 
-def check_for_updates():
+def check_for_updates(current: str):
     """Check for program updates."""
     try:
         with urlopen(URL_LATEST_VERSION, timeout=9.0) as answer:  # nosec
@@ -464,7 +464,7 @@ def check_for_updates():
     except URLError as err:
         showerror(title='Update', message=str(err))
     else:
-        if __version__ == latest:
+        if current == latest:
             showinfo(title='Update', message='Up to date!')
             return
         if askokcancel(
@@ -882,7 +882,7 @@ menu_help.add_command(
 )
 menu_help.add_separator()
 menu_help.add_command(
-    command=check_for_updates,
+    command=lambda: check_for_updates(__version__),
     label='Check for Updates...',
     state=tk.NORMAL,
     underline=10,
@@ -1158,7 +1158,7 @@ entry_key = tk.Entry(
     validate='key',
     validatecommand=name_vcmd[box_ciphers.get()],
 )
-entry_key.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')
+entry_key.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')  # No paste
 entry_key.pack_configure(
     expand=True, fill=tk.BOTH, ipady=IPADY, padx=PADX, pady=PADY, side=tk.TOP
 )
