@@ -16,10 +16,9 @@ from error import MatrixNotInvertibleError, NotCoPrimeError, ZeroShiftError
 ALPHABET_LEN = len(ALPHABET := string.printable)
 
 # = Custom Type Hints =
+TArr = NDArray[np.int32]
 TJob = Literal['+', '-']
-TOrder = Literal['ij', 'ji']
-TIntArr = NDArray[np.int32]
-# https://www.tcl.tk/man/tcl/TkCmd/entry.html#M16
+TOrd = Literal['i', 'j']
 TVCMDCode = Literal['%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W']
 
 # = Validate Actions =
@@ -49,6 +48,7 @@ class Cipher(ABC):
     @abstractmethod
     def validate(action: TVCMDCode, data: TVCMDCode) -> bool:
         """Validate command."""
+        # https://www.tcl.tk/man/tcl/TkCmd/entry.html#M16
 
     @abstractmethod
     def encrypt(self) -> str:
@@ -134,7 +134,7 @@ class Hill(Cipher):
 
         self._row = math.ceil(math.sqrt(len(key)))
 
-        self._key = self._m_fill(key, shape=(self._row, self._row), order='ij')
+        self._key = self._m_fill(key, shape=(self._row, self._row), order='i')
 
         determinant = round(np.linalg.det(self._key))
 
@@ -154,11 +154,11 @@ class Hill(Cipher):
         return (action == DELETE) or (data in ALPHABET)
 
     @staticmethod
-    def _m_fill(values: str, shape: tuple[int, int], order: TOrder) -> TIntArr:
+    def _m_fill(values: str, shape: tuple[int, int], order: TOrd) -> TArr:
         """Create a new matrix and fill it."""
         orders = {
-            'ij': lambda *given: given,
-            'ji': lambda *given: given[::-1],
+            'i': lambda *given: given,
+            'j': lambda *given: given[::-1],
         }
 
         matrix = np.zeros(shape=shape, dtype=int)
@@ -178,11 +178,11 @@ class Hill(Cipher):
 
         return matrix
 
-    def _m_multiply(self, matrix: NDArray) -> TIntArr:
+    def _m_multiply(self, matrix: NDArray) -> TArr:
         """Multiply the given matrix by the column vectors."""
         col = math.ceil(len(self.text) / self._row)
 
-        vectors = self._m_fill(self.text, shape=(self._row, col), order='ji')
+        vectors = self._m_fill(self.text, shape=(self._row, col), order='j')
 
         m_multiplied = np.matmul(matrix.astype(int), vectors)
         m_transposed = np.transpose(m_multiplied)
