@@ -70,10 +70,10 @@ SHORTCUT_SELECT_ALL = 'Ctrl+A'
 SHORTCUT_UNDO = 'Ctrl+Z'
 
 # = Miscellaneous =
-IPADY = 10.0
+IPADY = 10.
 
-PADX = (5.0, 5.0)
-PADY = (5.0, 5.0)
+PADX = (5., 5.)
+PADY = (5., 5.)
 
 B = 8  # 8-bits = 1-Byte
 

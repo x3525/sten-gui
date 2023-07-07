@@ -459,7 +459,7 @@ def reset():
 def check_for_updates(current: str):
     """Check for program updates."""
     try:
-        with urlopen(URL_LATEST_VERSION, timeout=9.0) as answer:  # nosec
+        with urlopen(URL_LATEST_VERSION, timeout=9.) as answer:  # nosec
             latest = urlparse(answer.url).path.rstrip('/').rpartition('/')[-1]
     except URLError as err:
         showerror(title='Update', message=str(err))
