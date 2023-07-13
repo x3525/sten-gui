@@ -119,7 +119,8 @@ def open_file(event: tk.Event) -> str | None:
                 mode = pic.mode
         except (
                 OSError,
-                UnidentifiedImageError, Image.DecompressionBombWarning,
+                UnidentifiedImageError,
+                Image.DecompressionBombError, Image.DecompressionBombWarning,
         ) as err:
             retry = askretrycancel(title='Open File', message=str(err))
             continue
