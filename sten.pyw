@@ -348,27 +348,21 @@ def decode(event: tk.Event):
         random.seed(seed)
         random.shuffle(pixels)
 
-    if FORGOT_LSB:
-        wordlist = (
-            tuple(filter(lambda t: t[1] != 0, zip(band_scale, _)))
-            for _ in product(range(B + 1), repeat=len(band_scale))
-        )
-        next(wordlist)  # ((0, 0), (1, 0), (2, 0)) is not acceptable!
-        iterable = tuple(wordlist)
-    else:
-        iterable = (Globals.band_lsb,)
-
-    for band_lsb in iterable:
+    for band_lsb in (Globals.band_lsb,) if (not FORGOT_LSB) else possibilities:
         bits, message = '', ''
+
         for pix, (band, lsb) in product(pixels, band_lsb):
             if message.endswith(DELIMITER):
                 break  # No need to go any further
+
             # File -> Bits
             bits += format(Picture.imagedata[pix][band], f'0{B}b')[-lsb:]
+
             if len(bits) >= B:
                 # Bits -> Characters
                 message += chr(int(bits[:B], 2))
                 bits = bits[B:]
+
         if message.endswith(DELIMITER):
             break
     else:
@@ -1204,6 +1198,11 @@ band_scale = {
     1: tk.Scale(region_lsb, fg=BLACK, from_=B, to=0, troughcolor=GREEN),
     2: tk.Scale(region_lsb, fg=BLACK, from_=B, to=0, troughcolor=BLUE),
 }  # Stick with this order!
+
+possibilities = tuple(
+    tuple(filter(lambda t: t[1] != 0, zip(band_scale, _)))
+    for _ in product(range(B + 1), repeat=len(band_scale))
+)
 
 for scale in band_scale.values():
     scale.set(1)
