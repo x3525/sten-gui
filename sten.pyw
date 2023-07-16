@@ -234,8 +234,6 @@ def encode(event: tk.Event):
         showerror(title='Encode', message=str(err))
         return
 
-    warn = (not cipher_name) and (DELIMITER in message)
-
     cipher.text = message
     message = cipher.encrypt()
 
@@ -243,16 +241,19 @@ def encode(event: tk.Event):
     if (cipher.name == crypto.HILL) and (len(message) > Globals.ch_limit):
         showerror(
             title='Encode',
-            message='New ciphertext length exceeds the character limit.',
+            message='New cipher text length exceeds the character limit.',
         )
         return
 
-    if warn:
-        showwarning(
+    if DELIMITER in message:
+        ok = askokcancel(
             title='Encode',
-            message='Message contains the delimiter. Some data will be lost!',
-            detail=f'Delimiter: {DELIMITER}',
+            message='Some data will be lost!',
+            detail='(Message will contain the delimiter)',
+            icon='warning',
         )
+        if not ok:
+            return
 
     output = asksaveasfilename(
         confirmoverwrite=True,
@@ -380,7 +381,7 @@ def decode(event: tk.Event):
         with open(output, 'w', encoding='utf-8') as out:
             out.write(message)
     except OSError as err:
-        showerror(title='Save — Decode', message=str(err))
+        showerror(title='Save As — Decode', message=str(err))
         return
 
     VARIABLE_OUTPUT.set(output)
