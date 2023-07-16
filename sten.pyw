@@ -208,6 +208,11 @@ def open_text(event: tk.Event) -> str | None:
 
 def encode(event: tk.Event):
     """Create a stego-object."""
+    cipher_name, key = box_ciphers.get(), entry_key.get()
+
+    if (not key) and cipher_name:
+        return
+
     message = text_message.get('1.0', tk.END)[:-1]
 
     if not message:
@@ -223,23 +228,31 @@ def encode(event: tk.Event):
         )
         return
 
-    if DELIMITER in message:
-        showwarning(
-            title='Encode',
-            message='Message contains the delimiter. Some data will be lost!',
-            detail=f'Delimiter: {DELIMITER}',
-        )
-
-    cipher_name, key = box_ciphers.get(), entry_key.get()
-
-    if (not key) and cipher_name:
-        return
-
     try:
         cipher = crypto.ciphers[cipher_name](key)
     except CryptoErrorGroup as err:
         showerror(title='Encode', message=str(err))
         return
+
+    warn = (not cipher_name) and (DELIMITER in message)
+
+    cipher.text = message
+    message = cipher.encrypt()
+
+    # Check the character limit, for Hill cipher :/
+    if (cipher.name == crypto.HILL) and (len(message) > Globals.ch_limit):
+        showerror(
+            title='Encode',
+            message='New ciphertext length exceeds the character limit.',
+        )
+        return
+
+    if warn:
+        showwarning(
+            title='Encode',
+            message='Message contains the delimiter. Some data will be lost!',
+            detail=f'Delimiter: {DELIMITER}',
+        )
 
     output = asksaveasfilename(
         confirmoverwrite=True,
@@ -258,17 +271,6 @@ def encode(event: tk.Event):
             title='Save As — Encode',
             message=f'Not a valid extension: {extension}',
             detail=f'Valid extensions: {EXTENSIONS_PICTURE_PRETTY}',
-        )
-        return
-
-    cipher.text = message
-    message = cipher.encrypt()
-
-    # Check the character limit, for Hill cipher :/
-    if (cipher.name == crypto.HILL) and (len(message) > Globals.ch_limit):
-        showerror(
-            title='Encode',
-            message='New ciphertext length exceeds the character limit.',
         )
         return
 
