@@ -1203,8 +1203,8 @@ band_scale = {
 }  # Stick with this order!
 
 possibilities = tuple(
-    tuple(compress(zip(band_scale, p), p))
-    for p in product(range(B + 1), repeat=len(band_scale))
+    tuple(compress(zip(band_scale, t), t))
+    for t in product(range(B + 1), repeat=len(band_scale))
 )
 
 for scale in band_scale.values():
