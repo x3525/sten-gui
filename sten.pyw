@@ -29,7 +29,7 @@ import warnings
 import webbrowser
 from contextlib import suppress
 from idlelib.tooltip import Hovertip  # type: ignore
-from itertools import product
+from itertools import compress, product
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.font import Font
 from tkinter.messagebox import (
@@ -88,7 +88,7 @@ class Picture:
     filename: str
     extension: str
 
-    properties: list[str]
+    properties: tuple[str, ...]
 
 
 def open_file(event: tk.Event) -> str | None:
@@ -159,13 +159,13 @@ def open_file(event: tk.Event) -> str | None:
 
         ch_capacity = (Picture.pixel * len(band_scale)) - len(DELIMITER)
 
-        Picture.properties = [
+        Picture.properties = (
             f'Capacity: {ch_capacity} characters',
             f'Width: {width} pixels',
             f'Height: {height} pixels',
             f'Bit depth: {B * len(Picture.mode)} ({Picture.mode})',
             f'Size: {os.stat(file).st_size} bytes',
-        ]
+        )
 
         VARIABLE_OPENED.set(file)
         VARIABLE_OUTPUT.set('')
@@ -280,7 +280,7 @@ def encode(event: tk.Event):
     image = Picture.imagedata.copy()
 
     # Characters -> Bits
-    bits = ''.join(format(ord(_), f'0{B}b') for _ in message)
+    bits = ''.join(format(ord(c), f'0{B}b') for c in message)
 
     bits_len = len(bits)
 
@@ -1203,8 +1203,8 @@ band_scale = {
 }  # Stick with this order!
 
 possibilities = tuple(
-    tuple(filter(lambda t: t[1] != 0, zip(band_scale, _)))
-    for _ in product(range(B + 1), repeat=len(band_scale))
+    tuple(compress(zip(band_scale, p), p))
+    for p in product(range(B + 1), repeat=len(band_scale))
 )
 
 for scale in band_scale.values():
@@ -1255,10 +1255,10 @@ text_message.pack_configure(
 )
 
 # = ALL =
-ALL_ENTRY_WITH_SECRET = [
+ALL_ENTRY_WITH_SECRET = (
     entry_prng,
     entry_key,
-]
+)
 
 if __name__ == '__main__':
     root.mainloop()

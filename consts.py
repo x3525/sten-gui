@@ -8,19 +8,21 @@ URL_ARCHIVE = f'{URL}/archive/refs/tags/'  # Do not remove the trailing slash!
 URL_LATEST_VERSION = f'{URL}/releases/latest'
 
 # = Extensions =
-EXTENSIONS_ALL = ['*.*']
-EXTENSIONS_PICTURE = [
+EXTENSIONS_ALL = (
+    '*.*',
+)
+EXTENSIONS_PICTURE = (
     '.bmp',
     '.png',
-]
-EXTENSIONS_PICTURE_PRETTY = '|'.join(_ for _ in EXTENSIONS_PICTURE)
+)
+EXTENSIONS_PICTURE_PRETTY = '|'.join(e for e in EXTENSIONS_PICTURE)
 
 # = Modes =
-MODES_PICTURE = [
+MODES_PICTURE = (
     'RGB',
     'RGBA',
-]
-MODES_PICTURE_PRETTY = '|'.join(_ for _ in MODES_PICTURE)
+)
+MODES_PICTURE_PRETTY = '|'.join(m for m in MODES_PICTURE)
 
 # = Colors =
 BLACK = '#000000'
@@ -48,15 +50,15 @@ VIRTUAL_EVENT_SELECT_ALL = '<<SelectAll>>'
 VIRTUAL_EVENT_UNDO = '<<Undo>>'
 
 # = Sequences =
-SEQUENCE_COPY = ['<Control-Key-c>', '<Control-Lock-Key-C>']
-SEQUENCE_CUT = ['<Control-Key-x>', '<Control-Lock-Key-X>']
-SEQUENCE_DECODE = ['<Control-Key-d>', '<Control-Lock-Key-D>']
-SEQUENCE_ENCODE = ['<Control-Key-e>', '<Control-Lock-Key-E>']
-SEQUENCE_OPEN_FILE = ['<Control-Key-n>', '<Control-Lock-Key-N>']
-SEQUENCE_PASTE = ['<Control-Key-v>', '<Control-Lock-Key-V>']
-SEQUENCE_REDO = ['<Control-Key-y>', '<Control-Lock-Key-Y>']
-SEQUENCE_SELECT_ALL = ['<Control-Key-a>', '<Control-Lock-Key-A>']
-SEQUENCE_UNDO = ['<Control-Key-z>', '<Control-Lock-Key-Z>']
+SEQUENCE_COPY = ('<Control-Key-c>', '<Control-Lock-Key-C>')
+SEQUENCE_CUT = ('<Control-Key-x>', '<Control-Lock-Key-X>')
+SEQUENCE_DECODE = ('<Control-Key-d>', '<Control-Lock-Key-D>')
+SEQUENCE_ENCODE = ('<Control-Key-e>', '<Control-Lock-Key-E>')
+SEQUENCE_OPEN_FILE = ('<Control-Key-n>', '<Control-Lock-Key-N>')
+SEQUENCE_PASTE = ('<Control-Key-v>', '<Control-Lock-Key-V>')
+SEQUENCE_REDO = ('<Control-Key-y>', '<Control-Lock-Key-Y>')
+SEQUENCE_SELECT_ALL = ('<Control-Key-a>', '<Control-Lock-Key-A>')
+SEQUENCE_UNDO = ('<Control-Key-z>', '<Control-Lock-Key-Z>')
 
 # = Shortcuts =
 SHORTCUT_COPY = 'Ctrl+C'

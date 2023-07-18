@@ -190,12 +190,12 @@ class Hill(Cipher):
         return np.concatenate(m_transposed) % ALPHABET_LEN
 
     def encrypt(self):
-        return ''.join(ALPHABET[_] for _ in self._m_multiply(self._key))
+        return ''.join(ALPHABET[x] for x in self._m_multiply(self._key))
 
     def decrypt(self):
         m_inv = np.array(np.around(self._m_adj * self._det_inv))
 
-        return ''.join(ALPHABET[_] for _ in self._m_multiply(m_inv))
+        return ''.join(ALPHABET[x] for x in self._m_multiply(m_inv))
 
 
 class Scytale(Cipher):
@@ -214,7 +214,7 @@ class Scytale(Cipher):
         return (action == DELETE) or bool(re.match(r'[1-9]\d*$', data))
 
     def encrypt(self):
-        return ''.join(self.text[_::self._key] for _ in range(self._key))
+        return ''.join(self.text[x::self._key] for x in range(self._key))
 
     def decrypt(self):
         full, mod = divmod(len(self.text), self._key)
