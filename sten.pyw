@@ -61,7 +61,7 @@ from config import (
 from consts import *
 from error import CryptoErrorGroup
 from icons import *
-from utils import splitext
+from utils import nonascii, splitext
 
 # Turn matching warnings into exceptions
 warnings.simplefilter('error', Image.DecompressionBombWarning)
@@ -194,7 +194,7 @@ def open_text(event: tk.Event) -> str | None:
             break
 
         try:
-            with open(file, encoding='utf-8', errors='ignore') as out:
+            with open(file, encoding='ascii', errors='ignore') as out:
                 text_message.delete('1.0', tk.END)
                 text_message.insert('1.0', out.read())
         except OSError as err:
@@ -218,9 +218,7 @@ def encode(event: tk.Event):
     if not message:
         return
 
-    for char in message:
-        if char in string.printable:
-            continue
+    if char := nonascii(message):
         showerror(
             title='Encode',
             message='Message contains a non-ASCII character.',
@@ -372,13 +370,21 @@ def decode(event: tk.Event):
         showwarning(title='Decode', message='No hidden message found.')
         return
 
+    if nonascii(message):
+        showerror(
+            title='Decode',
+            message='Message contains a non-ASCII character.',
+            detail='Are you sure this message was created using Sten?',
+        )
+        return
+
     message = message.removesuffix(DELIMITER)
 
     cipher.text = message
     message = cipher.decrypt()
 
     try:
-        with open(output, 'w', encoding='utf-8') as out:
+        with open(output, 'w', encoding='ascii') as out:
             out.write(message)
     except OSError as err:
         showerror(title='Save As — Decode', message=str(err))
