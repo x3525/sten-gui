@@ -237,7 +237,7 @@ def encode(event: tk.Event):
     if (cipher.name == crypto.HILL) and (len(message) > Globals.ch_limit):
         showerror(
             title='Encode',
-            message='New cipher text length exceeds the character limit.',
+            message='Cipher text length exceeds the character limit.',
         )
         return
 
