@@ -80,3 +80,5 @@ PADY = (5., 5.)
 B = 8  # 8-bits = 1-Byte
 
 DELIMITER = '$t3nb7$3rh@tC3l!k'
+
+MIN_PIXEL = B + (B * len(DELIMITER))

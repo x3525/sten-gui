@@ -138,12 +138,10 @@ def open_file(event: tk.Event) -> str | None:
             )
             continue
 
-        min_pix = B + (B * len(DELIMITER))
-
-        if pixel < min_pix:
+        if pixel < MIN_PIXEL:
             retry = askretrycancel(
                 title='Open File',
-                message=f'Need minimum {min_pix} pixels.',
+                message=f'Need minimum {MIN_PIXEL} pixels.',
                 detail=f'Provided: {pixel} pixels',
             )
             continue
