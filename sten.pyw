@@ -22,7 +22,6 @@ import logging
 import math
 import os
 import random
-import re
 import sys
 import tkinter as tk
 import warnings
@@ -53,6 +52,7 @@ from numpy.typing import NDArray
 import crypto
 from __version__ import __version__
 from consts import *
+from db import Db
 from error import CryptoErrorGroup
 from icons import *
 from utils import nonascii, splitext
@@ -339,7 +339,7 @@ def decode(event: tk.Event):
         random.seed(seed)
         random.shuffle(pixels)
 
-    for band_lsb in al if prefs['forgot.n.lsb'].get() else (Globals.band_lsb,):
+    for band_lsb in al if config['brute'].get() else (Globals.band_lsb,):
         bits, message = '', ''
 
         for pix, (band, lsb) in product(pixels, band_lsb):
@@ -411,19 +411,19 @@ def preferences():
         toplevel,
         anchor=tk.W,
         text='Confirm before exiting the program',
-        variable=prefs['confirm.exit'],
+        variable=config['confirm'],
     ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
     tk.Checkbutton(
         toplevel,
         anchor=tk.W,
         text='Use brute force technique to decode',
-        variable=prefs['forgot.n.lsb'],
+        variable=config['brute'],
     ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
     tk.Checkbutton(
         toplevel,
         anchor=tk.W,
         text='Start the program in full-screen mode',
-        variable=prefs['start.zoomed'],
+        variable=config['zoomed'],
     ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
 
 
@@ -434,20 +434,16 @@ def properties():
 
 def close():
     """Destroy the main window."""
-    if prefs['confirm.exit'].get():
+    if config['confirm'].get():
         if not askokcancel(
                 title='Confirm Exit',
                 message='Are you sure you want to exit?',
                 detail='(You can change this behaviour in configuration file)',
         ):
             return
-    try:
-        with open(FILE_STEN_INI, 'w', encoding='utf-8') as out:
-            out.write(''.join(str(int(var.get())) for var in prefs.values()))
-    except OSError as err:
-        showwarning(title='Preferences', message=str(err))
-    finally:
-        root.destroy()
+    params = [(str(int(var.get())), k) for k, var in config.items()]
+    database.update(*params)
+    root.destroy()
 
 
 def trigger(v_event: str):
@@ -495,7 +491,7 @@ def toggle_transparent():
 
 def reset():
     """Reset window."""
-    root.wm_state(WIDGET_WM_STATE[prefs['start.zoomed'].get()])
+    root.wm_state(WIDGET_WM_STATE[config['zoomed'].get()])
     root.wm_geometry(GEOMETRY)
 
 
@@ -658,14 +654,10 @@ PROCESS_DPI_AWARENESS = PROCESS_PER_MONITOR_DPI_AWARE
 
 ctypes.windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
 
-# = FILES =
-FILE_STEN_INI = os.path.join(os.path.dirname(__file__), 'sten.ini')
-FILE_STEN_LOG = os.path.join(os.path.dirname(__file__), 'sten.log')
-
 # = /!\ LOGGING /!\ =
 with suppress(OSError):
     logging.basicConfig(
-        filename=FILE_STEN_LOG,
+        filename=os.path.join(os.path.dirname(__file__), 'sten.log'),
         filemode='a',
         format='\n%(levelname)s %(asctime)s %(message)s\n',
         datefmt='%m/%d/%Y %I:%M %p',
@@ -676,20 +668,15 @@ with suppress(OSError):
 root = tk.Tk()
 
 # = CONFIGURATION =
-try:
-    with open(FILE_STEN_INI, encoding='utf-8') as conf:
-        if match := re.match(CONFIGURATION_REGEX_PATTERN, conf.read()):
-            configuration = match.string.strip()
-        else:
-            raise OSError
-except OSError:
-    configuration = CONFIGURATION_DEFAULT
+name = os.path.join(os.path.dirname(__file__), 'sten.db')
 
-prefs = {
-    'confirm.exit': tk.BooleanVar(value=bool(int(configuration[0]))),
-    'forgot.n.lsb': tk.BooleanVar(value=bool(int(configuration[1]))),
-    'start.zoomed': tk.BooleanVar(value=bool(int(configuration[2]))),
-}
+defaults = [('confirm', '1'), ('brute', '0'), ('zoomed', '0')]
+
+database = Db(name, 'sten', *defaults)
+
+data = database.fetch()
+
+config = {k: tk.BooleanVar(value=bool(int(v))) for k, v in data}
 
 # = Window Root =
 root.report_callback_exception = exception
