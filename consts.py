@@ -4,7 +4,7 @@
 
 # = Configuration =
 CONFIGURATION_DEFAULT = '100'
-CONFIGURATION_REGEX_PATTERN = fr'^[01]{{{len(CONFIGURATION_DEFAULT)}}}$'
+CONFIGURATION_REGEX_PATTERN = fr'^\s*[01]{{{len(CONFIGURATION_DEFAULT)}}}\s*$'
 
 # = URLs =
 URL = 'https://github.com/serhatcelik/sten'  # No trailing slash!

@@ -679,7 +679,7 @@ root = tk.Tk()
 try:
     with open(FILE_STEN_INI, encoding='utf-8') as conf:
         if match := re.match(CONFIGURATION_REGEX_PATTERN, conf.read()):
-            configuration = match.string
+            configuration = match.string.strip()
         else:
             raise OSError
 except OSError:
