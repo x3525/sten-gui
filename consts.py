@@ -2,6 +2,10 @@
 
 # no imports
 
+# = Configuration =
+CONFIGURATION_DEFAULT = '100'
+CONFIGURATION_REGEX_PATTERN = fr'^[01]{{{len(CONFIGURATION_DEFAULT)}}}$'
+
 # = URLs =
 URL = 'https://github.com/serhatcelik/sten'  # No trailing slash!
 URL_ARCHIVE = f'{URL}/archive/refs/tags/'  # Do not remove the trailing slash!
@@ -82,3 +86,7 @@ B = 8  # 8-bits = 1-Byte
 DELIMITER = '$t3nb7$3rh@tC3l!k'
 
 MIN_PIXEL = B + (B * len(DELIMITER))
+
+ENTRY_SHOW_CHAR = '*'
+
+WIDGET_WM_STATE = {True: 'zoomed', False: 'normal'}

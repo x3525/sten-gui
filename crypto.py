@@ -6,14 +6,15 @@ import re
 import string
 from abc import ABC, abstractmethod
 from itertools import product
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 from numpy.typing import NDArray
 
-from error import MatrixNotInvertibleError, NotCoPrimeError, ZeroShiftError
+from error import CryptoErrorGroup
 
-ALPHABET_LEN = len(ALPHABET := string.printable)
+ALPHABET = string.printable
+ALPHABET_LENGTH = len(ALPHABET)
 
 # = Custom Type Hints =
 TArr = NDArray[np.int32]
@@ -32,17 +33,27 @@ class Cipher(ABC):
     name: str
     code: tuple[TVCMDCode, TVCMDCode]
 
-    def __init__(self, text: str):
-        self._text = text
+    def __init__(self, key: Any, txt: str = ''):
+        self._key = key
+        self._txt = txt
 
     @property
-    def text(self) -> str:
-        """Plain/cipher text."""
-        return self._text
+    def key(self) -> Any:
+        """Cipher key."""
+        return self._key
 
-    @text.setter
-    def text(self, text: str):
-        self._text = text
+    @key.setter
+    def key(self, key: str):
+        self._key = key
+
+    @property
+    def txt(self) -> str:
+        """Plain/cipher text."""
+        return self._txt
+
+    @txt.setter
+    def txt(self, txt: str):
+        self._txt = txt
 
     @staticmethod
     @abstractmethod
@@ -65,20 +76,18 @@ class NotACipher(Cipher):
     name = ''
     code = ('%d', '%S')
 
-    def __init__(self, key: str, text=''):
-        super().__init__(text)
-
-        self._key = key
+    def __init__(self, key: str, txt=''):
+        super().__init__(key, txt)
 
     @staticmethod
     def validate(action, data):
         return False
 
     def encrypt(self):
-        return self.text
+        return self.txt
 
     def decrypt(self):
-        return self.text
+        return self.txt
 
 
 class Caesar(Cipher):
@@ -87,13 +96,11 @@ class Caesar(Cipher):
     name = 'Caesar'
     code = ('%d', '%S')
 
-    def __init__(self, key: str, text=''):
-        super().__init__(text)
+    def __init__(self, key: str, txt=''):
+        super().__init__(int(key), txt)
 
-        self._key = int(key)
-
-        if (self._key % ALPHABET_LEN) == 0:
-            raise ZeroShiftError('Key error. Shift value is equal to 0.')
+        if (self.key % ALPHABET_LENGTH) == 0:
+            raise CryptoErrorGroup('Key error. Shift value is equal to 0.')
 
     @staticmethod
     def validate(action, data):
@@ -112,15 +119,15 @@ class Caesar(Cipher):
             '-': operator.sub,
         }
 
-        text = ''
+        txt = ''
 
-        for char in self.text:
-            ch_idx_text = ALPHABET.index(char)
-            ch_idx_key = self._key
+        for char in self.txt:
+            ch_i_txt = ALPHABET.index(char)
+            ch_i_key = self.key
 
-            text += ALPHABET[jobs[job](ch_idx_text, ch_idx_key) % ALPHABET_LEN]
+            txt += ALPHABET[jobs[job](ch_i_txt, ch_i_key) % ALPHABET_LENGTH]
 
-        return text
+        return txt
 
 
 class Hill(Cipher):
@@ -129,25 +136,25 @@ class Hill(Cipher):
     name = 'Hill'
     code = ('%d', '%S')
 
-    def __init__(self, key: str, text=''):
-        super().__init__(text)
+    def __init__(self, key: str, txt=''):
+        super().__init__(key, txt)
 
         self._row = math.ceil(math.sqrt(len(key)))
 
-        self._key = self._m_fill(key, shape=(self._row, self._row), order='i')
+        self.key = self._m_fill(key, shape=(self._row, self._row), order='i')
 
-        determinant = round(np.linalg.det(self._key))
+        determinant = round(np.linalg.det(self.key))
 
         if determinant == 0:
-            raise MatrixNotInvertibleError('Key matrix is not invertible.')
-        if math.gcd(determinant, ALPHABET_LEN) != 1:
-            raise NotCoPrimeError(
+            raise CryptoErrorGroup('Key matrix is not invertible.')
+        if math.gcd(determinant, ALPHABET_LENGTH) != 1:
+            raise CryptoErrorGroup(
                 'Key determinant and alphabet length are not co-prime.'
             )
 
-        self._m_adj = np.linalg.inv(self._key) * determinant
+        self._m_adj = np.linalg.inv(self.key) * determinant
 
-        self._det_inv = pow(determinant, -1, ALPHABET_LEN)
+        self._det_inv = pow(determinant, -1, ALPHABET_LENGTH)
 
     @staticmethod
     def validate(action, data):
@@ -180,17 +187,17 @@ class Hill(Cipher):
 
     def _m_multiply(self, matrix: NDArray) -> TArr:
         """Multiply the given matrix by the column vectors."""
-        col = math.ceil(len(self.text) / self._row)
+        col = math.ceil(len(self.txt) / self._row)
 
-        vectors = self._m_fill(self.text, shape=(self._row, col), order='j')
+        vectors = self._m_fill(self.txt, shape=(self._row, col), order='j')
 
         m_multiplied = np.matmul(matrix.astype(int), vectors)
         m_transposed = np.transpose(m_multiplied)
 
-        return np.concatenate(m_transposed) % ALPHABET_LEN
+        return np.concatenate(m_transposed) % ALPHABET_LENGTH
 
     def encrypt(self):
-        return ''.join(ALPHABET[x] for x in self._m_multiply(self._key))
+        return ''.join(ALPHABET[x] for x in self._m_multiply(self.key))
 
     def decrypt(self):
         m_inv = np.array(np.around(self._m_adj * self._det_inv))
@@ -204,34 +211,32 @@ class Scytale(Cipher):
     name = 'Scytale'
     code = ('%d', '%P')
 
-    def __init__(self, key: str, text=''):
-        super().__init__(text)
-
-        self._key = int(key)
+    def __init__(self, key: str, txt=''):
+        super().__init__(int(key), txt)
 
     @staticmethod
     def validate(action, data):
         return (action == DELETE) or bool(re.match(r'[1-9]\d*$', data))
 
     def encrypt(self):
-        return ''.join(self.text[x::self._key] for x in range(self._key))
+        return ''.join(self.txt[x::self.key] for x in range(self.key))
 
     def decrypt(self):
-        full, mod = divmod(len(self.text), self._key)
+        full, mod = divmod(len(self.txt), self.key)
 
         rows = full + (mod > 0)
 
         middle = rows * mod
 
-        text = []
+        txt = []
 
         for row in range(full):
-            text.append(self.text[row:middle:rows])
-            text.append(self.text[(middle + row)::full])
+            txt.append(self.txt[row:middle:rows])
+            txt.append(self.txt[(middle + row)::full])
 
-        text.append(self.text[full:middle:rows])
+        txt.append(self.txt[full:middle:rows])
 
-        return ''.join(text)
+        return ''.join(txt)
 
 
 class Vigenere(Cipher):
@@ -240,10 +245,8 @@ class Vigenere(Cipher):
     name = 'Vigenère'
     code = ('%d', '%S')
 
-    def __init__(self, key: str, text=''):
-        super().__init__(text)
-
-        self._key = key
+    def __init__(self, key: str, txt=''):
+        super().__init__(key, txt)
 
     @staticmethod
     def validate(action, data):
@@ -262,23 +265,23 @@ class Vigenere(Cipher):
             '-': operator.sub,
         }
 
-        key = iter((self._key * len(self.text))[:len(self.text)])
+        key = iter((self.key * len(self.txt))[:len(self.txt)])
 
-        text = ''
+        txt = ''
 
-        for char in self.text:
-            ch_idx_text = ALPHABET.index(char)
-            ch_idx_key = ALPHABET.index(next(key))
+        for char in self.txt:
+            ch_i_txt = ALPHABET.index(char)
+            ch_i_key = ALPHABET.index(next(key))
 
-            text += ALPHABET[jobs[job](ch_idx_text, ch_idx_key) % ALPHABET_LEN]
+            txt += ALPHABET[jobs[job](ch_i_txt, ch_i_key) % ALPHABET_LENGTH]
 
-        return text
+        return txt
 
 
 ciphers = {
-    (NAC := NotACipher.name): NotACipher,
-    (CAESAR := Caesar.name): Caesar,
-    (HILL := Hill.name): Hill,
-    (SCYTALE := Scytale.name): Scytale,
-    (VIGENERE := Vigenere.name): Vigenere,
+    NotACipher.name: NotACipher,
+    Caesar.name: Caesar,
+    Hill.name: Hill,
+    Scytale.name: Scytale,
+    Vigenere.name: Vigenere,
 }  # type: dict[str, type[Cipher]]

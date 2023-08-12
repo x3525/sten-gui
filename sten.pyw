@@ -22,7 +22,7 @@ import logging
 import math
 import os
 import random
-import string
+import re
 import sys
 import tkinter as tk
 import warnings
@@ -52,12 +52,6 @@ from numpy.typing import NDArray
 
 import crypto
 from __version__ import __version__
-from config import (
-    CONFIRM_EXIT,
-    FORGOT_LSB,
-    KEY_MASK,
-    ZOOMED_MODE,
-)
 from consts import *
 from error import CryptoErrorGroup
 from icons import *
@@ -192,9 +186,9 @@ def open_text(event: tk.Event) -> str | None:
             break
 
         try:
-            with open(file, encoding='ascii', errors='ignore') as out:
+            with open(file, encoding='ascii', errors='ignore') as text:
                 text_message.delete('1.0', tk.END)
-                text_message.insert('1.0', out.read())
+                text_message.insert('1.0', text.read())
         except OSError as err:
             retry = askretrycancel(title='Open Text', message=str(err))
             continue
@@ -225,16 +219,15 @@ def encode(event: tk.Event):
         return
 
     try:
-        cipher = crypto.ciphers[cipher_name](key)
+        cipher = crypto.ciphers[cipher_name](key, message)
     except CryptoErrorGroup as err:
         showerror(title='Encode', message=str(err))
         return
 
-    cipher.text = message
     message = cipher.encrypt()
 
     # Check the character limit, for Hill cipher :/
-    if (cipher.name == crypto.HILL) and (len(message) > Globals.ch_limit):
+    if (cipher.name == crypto.Hill.name) and (len(message) > Globals.ch_limit):
         showerror(
             title='Encode',
             message='Cipher text length exceeds the character limit.',
@@ -242,13 +235,12 @@ def encode(event: tk.Event):
         return
 
     if DELIMITER in message:
-        ok = askokcancel(
-            title='Encode',
-            message='Some data will be lost!',
-            detail='(Message will contain the delimiter)',
-            icon='warning',
-        )
-        if not ok:
+        if not askokcancel(
+                title='Encode',
+                message='Some data will be lost!',
+                detail='(Message will contain the delimiter)',
+                icon='warning',
+        ):
             return
 
     output = asksaveasfilename(
@@ -278,7 +270,7 @@ def encode(event: tk.Event):
     # Characters -> Bits
     bits = ''.join(format(ord(c), f'0{B}b') for c in message)
 
-    bits_len = len(bits)
+    bits_length = len(bits)
 
     pixels = list(range(Picture.pixel))
 
@@ -289,7 +281,7 @@ def encode(event: tk.Event):
     i = 0
 
     for pix, (band, lsb) in product(pixels, Globals.band_lsb):
-        if i >= bits_len:
+        if i >= bits_length:
             break
 
         val = format(image[pix][band], f'0{B}b')
@@ -347,7 +339,7 @@ def decode(event: tk.Event):
         random.seed(seed)
         random.shuffle(pixels)
 
-    for band_lsb in (Globals.band_lsb,) if (not FORGOT_LSB) else possibilities:
+    for band_lsb in al if prefs['forgot.n.lsb'].get() else (Globals.band_lsb,):
         bits, message = '', ''
 
         for pix, (band, lsb) in product(pixels, band_lsb):
@@ -378,7 +370,7 @@ def decode(event: tk.Event):
 
     message = message.removesuffix(DELIMITER)
 
-    cipher.text = message
+    cipher.txt = message
     message = cipher.decrypt()
 
     try:
@@ -405,6 +397,36 @@ def show():
         showerror(title='Show', message=str(err))
 
 
+def preferences():
+    """Show preferences."""
+    toplevel = tk.Toplevel(root)
+
+    toplevel.grab_set()  # Direct all events to this Toplevel
+
+    toplevel.pack_propagate(True)
+
+    toplevel.wm_title('Preferences')
+
+    tk.Checkbutton(
+        toplevel,
+        anchor=tk.W,
+        text='Confirm before exiting the program',
+        variable=prefs['confirm.exit'],
+    ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
+    tk.Checkbutton(
+        toplevel,
+        anchor=tk.W,
+        text='Use brute force technique to decode',
+        variable=prefs['forgot.n.lsb'],
+    ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
+    tk.Checkbutton(
+        toplevel,
+        anchor=tk.W,
+        text='Start the program in full-screen mode',
+        variable=prefs['start.zoomed'],
+    ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
+
+
 def properties():
     """Show image properties."""
     showinfo(title='Image Properties', message='\n'.join(Picture.properties))
@@ -412,14 +434,19 @@ def properties():
 
 def close():
     """Destroy the main window."""
-    if not CONFIRM_EXIT:
-        root.destroy()
-        return
-    if askokcancel(
-            title='Confirm Exit',
-            message='Are you sure you want to exit?',
-            detail='(You can change this behaviour in configuration file)',
-    ):
+    if prefs['confirm.exit'].get():
+        if not askokcancel(
+                title='Confirm Exit',
+                message='Are you sure you want to exit?',
+                detail='(You can change this behaviour in configuration file)',
+        ):
+            return
+    try:
+        with open(FILE_STEN_INI, 'w', encoding='utf-8') as out:
+            out.write(''.join(str(int(var.get())) for var in prefs.values()))
+    except OSError as err:
+        showwarning(title='Preferences', message=str(err))
+    finally:
         root.destroy()
 
 
@@ -448,6 +475,12 @@ def popup(event: tk.Event):
         menu_edit.grab_release()
 
 
+def toggle_show_secrets():
+    """Toggle "Show Secrets" state."""
+    for entry in ALL_ENTRY_WITH_SECRET:
+        entry['show'] = '' if (entry['show'] != '') else ENTRY_SHOW_CHAR
+
+
 def toggle_always_on_top():
     """Toggle "Always on Top" state."""
     topmost = root.wm_attributes()[root.wm_attributes().index('-topmost') + 1]
@@ -460,15 +493,9 @@ def toggle_transparent():
     root.wm_attributes('-alpha', 1.5 - alpha)
 
 
-def toggle_show_secrets():
-    """Toggle "Show Secrets" state."""
-    for entry in ALL_ENTRY_WITH_SECRET:
-        entry['show'] = '' if (entry['show'] != '') else KEY_MASK
-
-
 def reset():
     """Reset window."""
-    root.wm_state('zoomed' if ZOOMED_MODE else tk.NORMAL)
+    root.wm_state(WIDGET_WM_STATE[prefs['start.zoomed'].get()])
     root.wm_geometry(GEOMETRY)
 
 
@@ -598,9 +625,11 @@ def refresh(event: tk.Event):
         text_message.delete('1.0', tk.END)
         text_message.insert('1.0', message[:ch_limit])
 
-    ch_left = ch_limit - len(text_message.get('1.0', tk.END)[:-1])
+    ch_used = len(text_message.get('1.0', tk.END)[:-1])
 
-    region_msg['text'] = left_limit.substitute(left=ch_left, limit=ch_limit)
+    ch_left = ch_limit - ch_used
+
+    region_msg['text'] = f'{ch_used}+{ch_left}={ch_limit}'
 
     if event.char in ['']:
         pass
@@ -617,11 +646,7 @@ def refresh(event: tk.Event):
 def exception(*args) -> NoReturn:
     """Report callback exception."""
     logging.critical(args, exc_info=(args[0], args[1], args[2]))
-    showerror(
-        title='Fatal Error',
-        message=f'Unhandled exception: {args}',
-        detail='(The program will now close)',
-    )
+    showerror(title='Fatal Error', message=str(args))
     os._exit(-1)  # This line of code is important!
 
 
@@ -633,25 +658,48 @@ PROCESS_DPI_AWARENESS = PROCESS_PER_MONITOR_DPI_AWARE
 
 ctypes.windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
 
+# = FILES =
+FILE_STEN_INI = os.path.join(os.path.dirname(__file__), 'sten.ini')
+FILE_STEN_LOG = os.path.join(os.path.dirname(__file__), 'sten.log')
+
 # = /!\ LOGGING /!\ =
 with suppress(OSError):
     logging.basicConfig(
-        filename=os.path.join(os.path.dirname(__file__), 'sten.log'),
+        filename=FILE_STEN_LOG,
         filemode='a',
         format='\n%(levelname)s %(asctime)s %(message)s\n',
         datefmt='%m/%d/%Y %I:%M %p',
         level=logging.WARNING,
     )
 
-# = Window Root =
+# = TK =
 root = tk.Tk()
-root.pack_propagate(True)
 
+# = CONFIGURATION =
+try:
+    with open(FILE_STEN_INI, encoding='utf-8') as conf:
+        if match := re.match(CONFIGURATION_REGEX_PATTERN, conf.read()):
+            configuration = match.string
+        else:
+            raise OSError
+except OSError:
+    configuration = CONFIGURATION_DEFAULT
+
+prefs = {
+    'confirm.exit': tk.BooleanVar(value=bool(int(configuration[0]))),
+    'forgot.n.lsb': tk.BooleanVar(value=bool(int(configuration[1]))),
+    'start.zoomed': tk.BooleanVar(value=bool(int(configuration[2]))),
+}
+
+# = Window Root =
 root.report_callback_exception = exception
+
+root.pack_propagate(True)
 
 root.wm_protocol('WM_DELETE_WINDOW', close)
 
 root.wm_iconphoto(True, tk.PhotoImage(data=ICON_DATA_STEN))
+
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('taskbar')
 
 root.wm_title(f'Sten {__version__}')
@@ -683,23 +731,26 @@ root.option_add(pattern='*Font', value=font)
 
 # = Menu Root =
 menu = tk.Menu(root, tearoff=False)
+
 root.configure(menu=menu)
 
 MENU_INDEX_EDIT = 1
 
 # == Menu File ==
 menu_file = tk.Menu(menu, tearoff=False)
+
 menu.add_cascade(label='File', menu=menu_file, state=tk.NORMAL, underline=0)
 
 MENU_ITEM_INDEX_OPEN_TEXT = 1
 MENU_ITEM_INDEX_ENCODE = 3
 MENU_ITEM_INDEX_DECODE = 4
-MENU_ITEM_INDEX_IMAGE_PROPERTIES = 6
+MENU_ITEM_INDEX_PREFERENCES = 6
+MENU_ITEM_INDEX_IMAGE_PROPERTIES = 7
 
 ICON_OPEN_FILE = tk.PhotoImage(data=ICON_DATA_OPEN_FILE)
 ICON_ENCODE = tk.PhotoImage(data=ICON_DATA_ENCODE)
 ICON_DECODE = tk.PhotoImage(data=ICON_DATA_DECODE)
-ICON_IMAGE_PROPERTIES = tk.PhotoImage(data=ICON_DATA_IMAGE_PROPERTIES)
+ICON_PREFERENCES = tk.PhotoImage(data=ICON_DATA_PREFERENCES)
 
 # Stay away from <Control-Key-o> key sequence!
 root.event_add(VIRTUAL_EVENT_OPEN_FILE, *SEQUENCE_OPEN_FILE)
@@ -745,9 +796,16 @@ menu_file.add_command(
 )
 menu_file.add_separator()
 menu_file.add_command(
+    command=preferences,
+    compound=tk.LEFT,
+    image=ICON_PREFERENCES,
+    label='Preferences',
+    state=tk.NORMAL,
+    underline=0,
+)
+menu_file.add_command(
     command=properties,
     compound=tk.LEFT,
-    image=ICON_IMAGE_PROPERTIES,
     label='Image Properties',
     state=tk.DISABLED,
     underline=7,
@@ -762,6 +820,7 @@ menu_file.add_command(
 
 # == Menu Edit ==
 menu_edit = tk.Menu(menu, tearoff=False)
+
 menu.add_cascade(label='Edit', menu=menu_edit, state=tk.DISABLED, underline=0)
 
 ICON_UNDO = tk.PhotoImage(data=ICON_DATA_UNDO)
@@ -846,6 +905,7 @@ menu_edit.add_command(
 
 # == Menu Window ==
 menu_win = tk.Menu(menu, tearoff=False)
+
 menu.add_cascade(label='Window', menu=menu_win, state=tk.NORMAL, underline=0)
 
 MENU_ITEM_INDEX_SHOW_SECRETS = 0
@@ -883,6 +943,7 @@ menu_win.add_command(
 
 # == Menu Help ==
 menu_help = tk.Menu(menu, tearoff=False)
+
 menu.add_cascade(label='Help', menu=menu_help, state=tk.NORMAL, underline=0)
 
 ICON_ABOUT = tk.PhotoImage(data=ICON_DATA_ABOUT)
@@ -1110,7 +1171,7 @@ entry_prng = tk.Entry(
     disabledbackground=BUTTON,
     fg=BLACK,
     relief=tk.FLAT,
-    show=KEY_MASK,
+    show=ENTRY_SHOW_CHAR,
     state=tk.DISABLED,
 )
 entry_prng.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')  # No paste
@@ -1169,10 +1230,10 @@ entry_key = tk.Entry(
     disabledbackground=BUTTON,
     fg=BLACK,
     relief=tk.FLAT,
-    show=KEY_MASK,
+    show=ENTRY_SHOW_CHAR,
     state=tk.DISABLED,
     validate='key',
-    validatecommand=name_vcmd[box_ciphers.get()],
+    vcmd=name_vcmd[box_ciphers.get()],
 )
 entry_key.bind(VIRTUAL_EVENT_PASTE, lambda e: 'break')  # No paste
 entry_key.pack_configure(
@@ -1206,10 +1267,10 @@ band_scale = {
     2: tk.Scale(region_lsb, fg=BLACK, from_=B, to=0, troughcolor=BLUE),
 }  # Stick with this order!
 
-possibilities = tuple(
+al = tuple(
     tuple(compress(zip(band_scale, t), t))
     for t in product(range(B + 1), repeat=len(band_scale))
-)
+)  # All possibilities
 
 for scale in band_scale.values():
     scale.set(1)
@@ -1225,8 +1286,6 @@ for scale in band_scale.values():
     )
 
 # = Region Message =
-left_limit = string.Template('$left/$limit')
-
 region_msg = tk.LabelFrame(
     region,
     bd=2,
@@ -1234,7 +1293,7 @@ region_msg = tk.LabelFrame(
     fg=WHITE,
     labelanchor=tk.SE,
     relief=tk.RIDGE,
-    text=left_limit.substitute(left='-', limit='-'),
+    text='0+0=0',
 )
 region_msg.pack_propagate(True)
 region_msg.grid_configure(
