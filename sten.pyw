@@ -160,8 +160,6 @@ def open_file(event: tk.Event) -> str | None:
 
         notebook['Decode'].delete('1.0', tk.END)
 
-        root.wm_title(root.wm_title().rstrip('*') + '*')
-
         B_show['state'] = tk.DISABLED
 
         B_open['bg'] = C_CYAN
@@ -305,8 +303,6 @@ def encode(event: tk.Event):
 
     VARIABLE_OUTPUT.set(output)
 
-    root.wm_title(root.wm_title().rstrip('*'))
-
     B_show['state'] = tk.NORMAL
 
     showinfo(title='Encode', message='File is encoded!')
@@ -371,8 +367,6 @@ def decode(event: tk.Event):
     N_stego.select(notebook['Decode'])
 
     VARIABLE_OUTPUT.set('')
-
-    root.wm_title(root.wm_title().rstrip('*'))
 
     B_show['state'] = tk.DISABLED
 
