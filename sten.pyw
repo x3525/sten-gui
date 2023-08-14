@@ -690,16 +690,20 @@ M_file.add_command(
     state=tk.NORMAL,
     underline=3,
 )
+
 root.bind(V_EVENT_OPEN_FILE, openasfile)
 root.bind(V_EVENT_OPEN_FILE, activate, add='+')
 root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
+
 M_file.add_command(
     command=lambda: root.event_generate(V_EVENT_OPEN_TEXT),
     label='Open Text',
     state=tk.DISABLED,
     underline=5,
 )
+
 M_file.add_separator()
+
 M_file.add_command(
     accelerator=SHORTCUT_ENCODE,
     command=lambda: root.event_generate(V_EVENT_ENCODE),
@@ -718,7 +722,9 @@ M_file.add_command(
     state=tk.DISABLED,
     underline=0,
 )
+
 M_file.add_separator()
+
 M_file.add_command(
     command=preferences,
     compound=tk.LEFT,
@@ -733,7 +739,9 @@ M_file.add_command(
     state=tk.DISABLED,
     underline=7,
 )
+
 M_file.add_separator()
+
 M_file.add_command(
     command=close,
     label='Exit',
@@ -789,7 +797,9 @@ M_edit.add_command(
     state=tk.NORMAL,
     underline=0,
 )
+
 M_edit.add_separator()
+
 M_edit.add_command(
     accelerator=SHORTCUT_CUT,
     command=lambda: manipulate(V_EVENT_CUT),
@@ -817,7 +827,9 @@ M_edit.add_command(
     state=tk.NORMAL,
     underline=0,
 )
+
 M_edit.add_separator()
+
 M_edit.add_command(
     accelerator=SHORTCUT_SELECT_ALL,
     command=lambda: manipulate(V_EVENT_SELECT_ALL),
@@ -849,7 +861,9 @@ M_window.add_checkbutton(
     state=tk.NORMAL,
     underline=0,
 )
+
 M_window.add_separator()
+
 M_window.add_command(
     command=lambda: root.wm_geometry(GEOMETRY),
     compound=tk.LEFT,
