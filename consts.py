@@ -84,9 +84,9 @@ SHORTCUT_REDO = 'Ctrl+Y'
 SHORTCUT_SELECT_ALL = 'Ctrl+A'
 SHORTCUT_UNDO = 'Ctrl+Z'
 
-##################
+#################
 # Miscellaneous #
-##################
+#################
 B = 8
 
 DELIMITER = '$t3nb7$3rh@tC3l!k'

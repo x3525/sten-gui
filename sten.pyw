@@ -583,7 +583,7 @@ def exception(*msg) -> NoReturn:
     """Report callback exception."""
     logging.critical(msg, exc_info=(msg[0], msg[1], msg[2]))
     showerror(title='Fatal Error', message=str(msg))
-    os._exit(-1)  # This line of code is important!
+    os._exit(-1)
 
 
 sys.excepthook = exception

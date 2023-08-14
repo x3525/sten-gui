@@ -16,13 +16,17 @@ from error import CryptoErrorGroup
 ALPHABET = string.printable
 ALPHABET_LENGTH = len(ALPHABET)
 
-# = Custom Type Hints =
+#####################
+# Custom Type Hints #
+#####################
 TArr = NDArray[np.int32]
 TJob = Literal['+', '-']
 TOrd = Literal['i', 'j']
 TVCMDCode = Literal['%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W']
 
-# = Validate Actions =
+####################
+# Validate Actions #
+####################
 DELETE = '0'
 INSERT = '1'
 
@@ -43,7 +47,7 @@ class Cipher(ABC):
         return self._key
 
     @key.setter
-    def key(self, key: str):
+    def key(self, key: Any):
         self._key = key
 
     @property
@@ -122,10 +126,10 @@ class Caesar(Cipher):
         txt = ''
 
         for char in self.txt:
-            ch_i_txt = ALPHABET.index(char)
-            ch_i_key = self.key
+            i_txt = ALPHABET.index(char)
+            i_key = self.key
 
-            txt += ALPHABET[jobs[job](ch_i_txt, ch_i_key) % ALPHABET_LENGTH]
+            txt += ALPHABET[jobs[job](i_txt, i_key) % ALPHABET_LENGTH]
 
         return txt
 
@@ -139,9 +143,9 @@ class Hill(Cipher):
     def __init__(self, key: str, txt=''):
         super().__init__(key, txt)
 
-        self._row = math.ceil(math.sqrt(len(key)))
+        row = math.ceil(math.sqrt(len(key)))
 
-        self.key = self._m_fill(key, shape=(self._row, self._row), order='i')
+        self.key = self._fill(key, shape=(row, row), order='i')
 
         determinant = round(np.linalg.det(self.key))
 
@@ -152,16 +156,18 @@ class Hill(Cipher):
                 'Key determinant and alphabet length are not co-prime.'
             )
 
-        self._m_adj = np.linalg.inv(self.key) * determinant
+        self._row = row
 
-        self._det_inv = pow(determinant, -1, ALPHABET_LENGTH)
+        self._adj = np.linalg.inv(self.key) * determinant
+
+        self._inv = pow(determinant, -1, ALPHABET_LENGTH)
 
     @staticmethod
     def validate(action, data):
         return (action == DELETE) or (data in ALPHABET)
 
     @staticmethod
-    def _m_fill(values: str, shape: tuple[int, int], order: TOrd) -> TArr:
+    def _fill(values: str, shape: tuple[int, int], order: TOrd) -> TArr:
         """Create a new matrix and fill it."""
         orders = {
             'i': lambda *given: given,
@@ -172,12 +178,12 @@ class Hill(Cipher):
 
         row, col = orders[order](*shape)
 
-        fill, idx = 0, 0
+        extra, idx = 0, 0
 
         for i, j in product(range(row), range(col)):
             if idx == len(values):
-                matrix[orders[order](i, j)] = fill
-                fill += 1
+                matrix[orders[order](i, j)] = extra
+                extra += 1
                 continue
 
             matrix[orders[order](i, j)] = ALPHABET.index(values[idx])
@@ -185,24 +191,24 @@ class Hill(Cipher):
 
         return matrix
 
-    def _m_multiply(self, matrix: NDArray) -> TArr:
+    def _multiply(self, matrix: NDArray) -> TArr:
         """Multiply the given matrix by the column vectors."""
         col = math.ceil(len(self.txt) / self._row)
 
-        vectors = self._m_fill(self.txt, shape=(self._row, col), order='j')
+        vectors = self._fill(self.txt, shape=(self._row, col), order='j')
 
-        m_multiplied = np.matmul(matrix.astype(int), vectors)
-        m_transposed = np.transpose(m_multiplied)
+        multiplied = np.matmul(matrix.astype(int), vectors)
+        transposed = np.transpose(multiplied)
 
-        return np.concatenate(m_transposed) % ALPHABET_LENGTH
+        return np.concatenate(transposed) % ALPHABET_LENGTH
 
     def encrypt(self):
-        return ''.join(ALPHABET[x] for x in self._m_multiply(self.key))
+        return ''.join(ALPHABET[i] for i in self._multiply(self.key))
 
     def decrypt(self):
-        m_inv = np.array(np.around(self._m_adj * self._det_inv))
+        inverted = np.array(np.around(self._adj * self._inv))
 
-        return ''.join(ALPHABET[x] for x in self._m_multiply(m_inv))
+        return ''.join(ALPHABET[i] for i in self._multiply(inverted))
 
 
 class Scytale(Cipher):
@@ -216,10 +222,10 @@ class Scytale(Cipher):
 
     @staticmethod
     def validate(action, data):
-        return (action == DELETE) or bool(re.match(r'[1-9]\d*$', data))
+        return (action == DELETE) or bool(re.match(r'^[1-9]\d*$', data))
 
     def encrypt(self):
-        return ''.join(self.txt[x::self.key] for x in range(self.key))
+        return ''.join(self.txt[i::self.key] for i in range(self.key))
 
     def decrypt(self):
         full, mod = divmod(len(self.txt), self.key)
@@ -270,10 +276,10 @@ class Vigenere(Cipher):
         txt = ''
 
         for char in self.txt:
-            ch_i_txt = ALPHABET.index(char)
-            ch_i_key = ALPHABET.index(next(key))
+            i_txt = ALPHABET.index(char)
+            i_key = ALPHABET.index(next(key))
 
-            txt += ALPHABET[jobs[job](ch_i_txt, ch_i_key) % ALPHABET_LENGTH]
+            txt += ALPHABET[jobs[job](i_txt, i_key) % ALPHABET_LENGTH]
 
         return txt
 
