@@ -22,6 +22,7 @@ import logging
 import math
 import os
 import random
+import string
 import sys
 import tkinter as tk
 import warnings
@@ -63,7 +64,6 @@ class Globals:
 
     band_lsb: tuple[tuple[int, int], ...]
     ch_limit: int
-    is_bound: bool = False
 
 
 @dataclasses.dataclass
@@ -83,8 +83,7 @@ class Picture:
 
 def open_file(event: tk.Event) -> str | None:
     """Open a picture file."""
-    bg_old = B_open['bg']  # Backup
-    B_open['bg'] = C_WHITE
+    root.wm_title(wm_title := root.wm_title() + '*')
 
     retry = True
     while retry:
@@ -155,17 +154,17 @@ def open_file(event: tk.Event) -> str | None:
             f'Size: {os.stat(file).st_size} bytes',
         )
 
-        VARIABLE_OPENED.set(file)
-        VARIABLE_OUTPUT.set('')
+        Var_opened.set(file)
+        Var_output.set('')
 
-        notebook['Decode'].delete('1.0', tk.END)
+        notebook['decode'].delete('1.0', tk.END)
 
         B_show['state'] = tk.DISABLED
 
-        B_open['bg'] = C_CYAN
+        root.wm_title(wm_title.rstrip('*'))
         return None
 
-    B_open['bg'] = bg_old  # Restore
+    root.wm_title(wm_title.rstrip('*'))
     return 'break'  # No more event processing for "V_EVENT_OPEN_FILE"
 
 
@@ -183,13 +182,13 @@ def open_text(event: tk.Event) -> str | None:
 
         try:
             with open(file, encoding='ascii', errors='ignore') as text:
-                notebook['Encode'].delete('1.0', tk.END)
-                notebook['Encode'].insert('1.0', text.read())
+                notebook['encode'].delete('1.0', tk.END)
+                notebook['encode'].insert('1.0', text.read())
         except OSError as err:
             retry = askretrycancel(title='Open Text', message=str(err))
             continue
         else:
-            N_stego.select(notebook['Encode'])
+            N_stego.select(notebook['encode'])
             return None
 
     return 'break'
@@ -202,7 +201,7 @@ def encode(event: tk.Event):
     if (not key) and cipher_name:
         return
 
-    message = notebook['Encode'].get('1.0', tk.END)[:-1]
+    message = notebook['encode'].get('1.0', tk.END)[:-1]
 
     if not message:
         return
@@ -296,12 +295,12 @@ def encode(event: tk.Event):
     try:
         Image.fromarray(array).save(output)
     except OSError as err:
-        showerror(title='Save — Encode', message=str(err))
+        showerror(title='Save', message=str(err))
         return
 
-    notebook['Decode'].delete('1.0', tk.END)
+    notebook['decode'].delete('1.0', tk.END)
 
-    VARIABLE_OUTPUT.set(output)
+    Var_output.set(output)
 
     B_show['state'] = tk.NORMAL
 
@@ -361,12 +360,12 @@ def decode(event: tk.Event):
     cipher.txt = message
     message = cipher.decrypt()
 
-    notebook['Decode'].delete('1.0', tk.END)
-    notebook['Decode'].insert('1.0', message)
+    notebook['decode'].delete('1.0', tk.END)
+    notebook['decode'].insert('1.0', message)
 
-    N_stego.select(notebook['Decode'])
+    N_stego.select(notebook['decode'])
 
-    VARIABLE_OUTPUT.set('')
+    Var_output.set('')
 
     B_show['state'] = tk.DISABLED
 
@@ -376,7 +375,7 @@ def decode(event: tk.Event):
 def show():
     """Show a previously created stego-object."""
     try:
-        os.startfile(VARIABLE_OUTPUT.get(), operation='open')  # nosec
+        os.startfile(Var_output.get(), operation='open')  # nosec
     except OSError as err:
         showerror(title='Show', message=str(err))
 
@@ -424,11 +423,6 @@ def close():
     root.destroy()
 
 
-def trigger(v_event: str):
-    """Trigger the given virtual event."""
-    root.event_generate(v_event)
-
-
 def manipulate(v_event: str):
     """Use a manipulation by triggering the given virtual event."""
     widget = root.focus_get()
@@ -449,12 +443,6 @@ def popup(event: tk.Event):
         M_edit.grab_release()
 
 
-def toggle_show_secrets():
-    """Toggle "Show Secrets" state."""
-    for entry in ALL_ENTRY_WITH_SECRET:
-        entry['show'] = '' if (entry['show'] != '') else ENTRY_SHOW_CHAR
-
-
 def toggle_always_on_top():
     """Toggle "Always on Top" state."""
     topmost = root.wm_attributes()[root.wm_attributes().index('-topmost') + 1]
@@ -467,17 +455,11 @@ def toggle_transparent():
     root.wm_attributes('-alpha', 1.5 - alpha)
 
 
-def reset():
-    """Reset window."""
-    root.wm_geometry(GEOMETRY)
-
-
 def refresh_activate(event: tk.Event):
     """When a file is opened, this method binds widgets to "F5" once."""
-    if Globals.is_bound:
-        return
-
-    Globals.is_bound = True
+    # Bind again (unbind)
+    root.bind(V_EVENT_OPEN_FILE, open_file)
+    root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
 
     M_file.entryconfigure(MENU_ITEM_INDEX_OPEN_TEXT, state=tk.NORMAL)
     root.bind(V_EVENT_OPEN_TEXT, open_text)
@@ -491,8 +473,6 @@ def refresh_activate(event: tk.Event):
     root.bind(V_EVENT_CUT, refresh)
     root.bind(V_EVENT_PASTE, refresh)
 
-    M_window.entryconfigure(MENU_ITEM_INDEX_SHOW_SECRETS, state=tk.NORMAL)
-
     E_prng['state'] = tk.NORMAL
 
     X_ciphers['state'] = 'readonly'
@@ -501,14 +481,14 @@ def refresh_activate(event: tk.Event):
     E_key['state'] = tk.NORMAL
     E_key.bind('<KeyRelease>', refresh)
 
-    N_stego.tab(notebook['Encode'], state=tk.NORMAL)
-    N_stego.tab(notebook['Decode'], state=tk.NORMAL)
+    N_stego.tab(notebook['encode'], state=tk.NORMAL)
+    N_stego.tab(notebook['decode'], state=tk.NORMAL)
 
-    N_stego.select(notebook['Encode'])
+    N_stego.select(notebook['encode'])
 
-    notebook['Encode'].bind('<KeyRelease>', refresh)
-    notebook['Encode'].bind('<ButtonPress-3>', popup)
-    notebook['Decode'].bind('<ButtonPress-3>', popup)
+    notebook['encode'].bind('<KeyRelease>', refresh)
+    notebook['encode'].bind('<ButtonPress-3>', popup)
+    notebook['decode'].bind('<ButtonPress-3>', popup)
 
     for scl in band_scale.values():
         scl['state'] = tk.NORMAL
@@ -532,7 +512,7 @@ def refresh(event: tk.Event):
         E_key.delete('0', tk.END)
         E_key['vcmd'] = name_vcmd[cipher_name]  # Update validate command
 
-    message = notebook['Encode'].get('1.0', tk.END)[:-1]
+    message = notebook['encode'].get('1.0', tk.END)[:-1]
 
     key = E_key.get()
 
@@ -578,31 +558,31 @@ def refresh(event: tk.Event):
 
     if len(message) > ch_limit:
         # Delete excess message
-        notebook['Encode'].delete('1.0', tk.END)
-        notebook['Encode'].insert('1.0', message[:ch_limit])
+        notebook['encode'].delete('1.0', tk.END)
+        notebook['encode'].insert('1.0', message[:ch_limit])
 
-    ch_used = len(notebook['Encode'].get('1.0', tk.END)[:-1])
+    ch_used = len(notebook['encode'].get('1.0', tk.END)[:-1])
 
-    ch_left = ch_limit - ch_used
+    ch_rem = ch_limit - ch_used
 
-    F_book['text'] = f'{ch_used}+{ch_left}={ch_limit}'
+    F_book['text'] = template.substitute(use=ch_used, rem=ch_rem, lim=ch_limit)
 
     if event.char in ['']:
         pass
     else:
-        if (widget is notebook['Encode']) or (ch_left == 0):
+        if (widget is notebook['encode']) or (ch_rem == 0):
             # Scroll such that the character at "INSERT" index is visible
-            notebook['Encode'].see(notebook['Encode'].index(tk.INSERT))
+            notebook['encode'].see(notebook['encode'].index(tk.INSERT))
 
     Globals.band_lsb = tuple(band_lsb.items())
 
     Globals.ch_limit = ch_limit
 
 
-def exception(*args) -> NoReturn:
+def exception(*msg) -> NoReturn:
     """Report callback exception."""
-    logging.critical(args, exc_info=(args[0], args[1], args[2]))
-    showerror(title='Fatal Error', message=str(args))
+    logging.critical(msg, exc_info=(msg[0], msg[1], msg[2]))
+    showerror(title='Fatal Error', message=str(msg))
     os._exit(-1)  # This line of code is important!
 
 
@@ -622,10 +602,7 @@ ctypes.windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
 with suppress(OSError):
     logging.basicConfig(
         filename=os.path.join(os.path.dirname(__file__), 'sten.log'),
-        filemode='a',
-        format='\n%(levelname)s %(asctime)s %(message)s\n',
-        datefmt='%m/%d/%Y %I:%M %p',
-        level=logging.WARNING,
+        format='\n%(asctime)s',
     )
 
 ########
@@ -709,7 +686,7 @@ root.event_add(V_EVENT_DECODE, *SEQUENCE_DECODE)
 
 M_file.add_command(
     accelerator=SHORTCUT_OPEN_FILE,
-    command=lambda: trigger(V_EVENT_OPEN_FILE),
+    command=lambda: root.event_generate(V_EVENT_OPEN_FILE),
     compound=tk.LEFT,
     image=IMAGE_OPEN_FILE,
     label='Open File',
@@ -720,7 +697,7 @@ root.bind(V_EVENT_OPEN_FILE, open_file)
 root.bind(V_EVENT_OPEN_FILE, refresh_activate, add='+')
 root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
 M_file.add_command(
-    command=lambda: trigger(V_EVENT_OPEN_TEXT),
+    command=lambda: root.event_generate(V_EVENT_OPEN_TEXT),
     label='Open Text',
     state=tk.DISABLED,
     underline=5,
@@ -728,7 +705,7 @@ M_file.add_command(
 M_file.add_separator()
 M_file.add_command(
     accelerator=SHORTCUT_ENCODE,
-    command=lambda: trigger(V_EVENT_ENCODE),
+    command=lambda: root.event_generate(V_EVENT_ENCODE),
     compound=tk.LEFT,
     image=IMAGE_ENCODE,
     label='Encode',
@@ -737,7 +714,7 @@ M_file.add_command(
 )
 M_file.add_command(
     accelerator=SHORTCUT_DECODE,
-    command=lambda: trigger(V_EVENT_DECODE),
+    command=lambda: root.event_generate(V_EVENT_DECODE),
     compound=tk.LEFT,
     image=IMAGE_DECODE,
     label='Decode',
@@ -861,17 +838,8 @@ M_window = tk.Menu(menu, tearoff=False)
 
 menu.add_cascade(label='Window', menu=M_window, state=tk.NORMAL, underline=0)
 
-MENU_ITEM_INDEX_SHOW_SECRETS = 0
-
 IMAGE_RESET = tk.PhotoImage(data=IMAGE_DATA_RESET)
 
-M_window.add_checkbutton(
-    command=toggle_show_secrets,
-    label='Show Secrets',
-    state=tk.DISABLED,
-    underline=5,
-)
-M_window.add_separator()
 M_window.add_checkbutton(
     command=toggle_always_on_top,
     label='Always on Top',
@@ -886,7 +854,7 @@ M_window.add_checkbutton(
 )
 M_window.add_separator()
 M_window.add_command(
-    command=reset,
+    command=lambda: root.wm_geometry(GEOMETRY),
     compound=tk.LEFT,
     image=IMAGE_RESET,
     label='Reset',
@@ -901,8 +869,8 @@ M_help = tk.Menu(menu, tearoff=False)
 
 menu.add_cascade(label='Help', menu=M_help, state=tk.NORMAL, underline=0)
 
-IMAGE_ABOUT = tk.PhotoImage(data=IMAGE_DATA_ABOUT)
 IMAGE_WEB_SITE = tk.PhotoImage(data=IMAGE_DATA_WEB_SITE)
+IMAGE_ABOUT = tk.PhotoImage(data=IMAGE_DATA_ABOUT)
 
 M_help.add_command(
     command=lambda: webbrowser.open('https://github.com/serhatcelik/sten', 2),
@@ -964,7 +932,7 @@ B_encode = tk.Button(
     anchor=tk.CENTER,
     bd=B_WIDE,
     bg=C_WHITE,
-    command=lambda: trigger(V_EVENT_ENCODE),
+    command=lambda: root.event_generate(V_EVENT_ENCODE),
     compound=tk.LEFT,
     fg=C_BLACK,
     image=IMAGE_ENCODE,
@@ -989,7 +957,7 @@ B_decode = tk.Button(
     anchor=tk.CENTER,
     bd=B_WIDE,
     bg=C_WHITE,
-    command=lambda: trigger(V_EVENT_DECODE),
+    command=lambda: root.event_generate(V_EVENT_DECODE),
     compound=tk.LEFT,
     fg=C_BLACK,
     image=IMAGE_DECODE,
@@ -1044,7 +1012,7 @@ tk.Entry(
     readonlybackground=C_BUTTON,
     relief=tk.FLAT,
     state='readonly',
-    textvariable=(VARIABLE_OPENED := tk.StringVar()),
+    textvariable=(Var_opened := tk.StringVar()),
 ).grid_configure(row=0, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW)
 B_open = tk.Button(
     F_info,
@@ -1052,15 +1020,13 @@ B_open = tk.Button(
     anchor=tk.CENTER,
     bd=B_WIDE,
     bg=C_WHITE,
-    command=lambda: trigger(V_EVENT_OPEN_FILE),
+    command=lambda: root.event_generate(V_EVENT_OPEN_FILE),
     fg=C_BLACK,
     relief=tk.FLAT,
     state=tk.NORMAL,
     text='Open',
 )
-B_open.grid_configure(
-    row=0, column=2, padx=PADX, pady=PADY, sticky=tk.NSEW
-)
+B_open.grid_configure(row=0, column=2, padx=PADX, pady=PADY, sticky=tk.NSEW)
 Hovertip(
     B_open,
     text=f'[{SHORTCUT_OPEN_FILE}]\n{open_file.__doc__}',
@@ -1086,7 +1052,7 @@ tk.Entry(
     readonlybackground=C_BUTTON,
     relief=tk.FLAT,
     state='readonly',
-    textvariable=(VARIABLE_OUTPUT := tk.StringVar()),
+    textvariable=(Var_output := tk.StringVar()),
 ).grid_configure(row=1, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW)
 B_show = tk.Button(
     F_info,
@@ -1100,9 +1066,7 @@ B_show = tk.Button(
     state=tk.DISABLED,
     text='Show',
 )
-B_show.grid_configure(
-    row=1, column=2, padx=PADX, pady=PADY, sticky=tk.NSEW
-)
+B_show.grid_configure(row=1, column=2, padx=PADX, pady=PADY, sticky=tk.NSEW)
 Hovertip(
     B_show,
     text=show.__doc__,
@@ -1172,7 +1136,7 @@ X_ciphers = ttk.Combobox(
     background=C_WHITE,
     foreground=C_BLACK,
     state=tk.DISABLED,
-    values=list(crypto.ciphers),
+    values=tuple(crypto.ciphers),
 )
 X_ciphers.current(1)
 X_ciphers.pack_configure(
@@ -1239,12 +1203,12 @@ band_scale = {
 }  # Stick with this order!
 
 al = tuple(
-    tuple(compress(zip(band_scale, t), t))
-    for t in product(range(B + 1), repeat=len(band_scale))
+    tuple(compress(zip(band_scale, tup), tup))
+    for tup in product(range(B + 1), repeat=len(band_scale))
 )  # All possibilities
 
 for scale in band_scale.values():
-    scale.set(1)
+    scale.set(1)  # Do not change the position of this line!
     scale.configure(
         bd=B_THIN,
         relief=tk.FLAT,
@@ -1259,6 +1223,14 @@ for scale in band_scale.values():
 ###################
 # Frame: Notebook #
 ###################
+mapping = {
+    'use': 0,
+    'rem': 0,
+    'lim': 0,
+}
+
+template = string.Template('$use+$rem=$lim')
+
 F_book = tk.LabelFrame(
     frame,
     bd=B_THIN,
@@ -1266,7 +1238,7 @@ F_book = tk.LabelFrame(
     fg=C_WHITE,
     labelanchor=tk.SE,
     relief=tk.RIDGE,
-    text='0+0=0',
+    text=template.substitute(mapping),
 )
 F_book.pack_propagate(True)
 F_book.grid_configure(
@@ -1286,14 +1258,13 @@ N_stego.pack_configure(
     expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.TOP
 )
 
-for label in ('Encode', 'Decode'):
+for title in ('encode', 'decode'):
     tab = ScrolledText(
         N_stego,
         bd=B_NONE,
         bg=C_WHITE,
         fg=C_BLACK,
         relief=tk.FLAT,
-        selectbackground=C_HIGHLIGHT,
         state=tk.NORMAL,
         tabs=1,
         undo=True,
@@ -1306,17 +1277,9 @@ for label in ('Encode', 'Decode'):
         tab,
         state=tk.DISABLED,
         sticky=tk.NSEW,
-        text=label,
+        text=title.capitalize(),
     )
-    notebook.update({label: tab})
-
-#######
-# All #
-#######
-ALL_ENTRY_WITH_SECRET = (
-    E_prng,
-    E_key,
-)
+    notebook.update({title: tab})
 
 #################
 # Configuration #
@@ -1327,9 +1290,7 @@ defaults = [('confirm', '1'), ('brute', '0')]
 
 database = Db(db_name, 'sten', *defaults)
 
-data = database.fetch()
-
-config = {k: tk.BooleanVar(value=bool(int(v))) for k, v in data}
+config = {k: tk.BooleanVar(value=bool(int(v))) for k, v in database.fetch()}
 
 if __name__ == '__main__':
     root.mainloop()
