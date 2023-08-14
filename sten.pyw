@@ -424,6 +424,8 @@ def manipulate(v_event: str):
 
     if not widget:
         return
+    if widget is notebook['decode']:
+        return
 
     widget.event_generate(v_event)
 
@@ -481,9 +483,9 @@ def activate(event: tk.Event):
 
     N_stego.select(notebook['encode'])
 
-    notebook['encode'].bind('<KeyRelease>', refresh)
     notebook['encode'].bind('<ButtonPress-3>', popup)
-    notebook['decode'].bind('<ButtonPress-3>', popup)
+    notebook['encode'].bind('<KeyRelease>', refresh)
+    notebook['decode'].bind('<KeyPress>', lambda e: 'break')
 
     for scl in band_scale.values():
         scl['state'] = tk.NORMAL
@@ -893,7 +895,9 @@ frame = tk.Frame(
     bg=C_BLACK,
     relief=tk.FLAT,
 )
+
 frame.grid_propagate(True)
+
 frame.grid_rowconfigure(index=0, weight=0)
 frame.grid_rowconfigure(index=1, weight=1)
 frame.grid_rowconfigure(index=2, weight=2)
@@ -913,7 +917,9 @@ F_stego = tk.Frame(
     bg=C_BLACK,
     relief=tk.RIDGE,
 )
+
 F_stego.pack_propagate(True)
+
 F_stego.grid_configure(
     row=0, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
@@ -935,9 +941,11 @@ B_encode = tk.Button(
     state=tk.DISABLED,
     text='Encode',
 )
+
 B_encode.pack_configure(
     expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.LEFT
 )
+
 Hovertip(
     B_encode,
     text=f'[{SHORTCUT_ENCODE}]\n{encode.__doc__}',
@@ -960,9 +968,11 @@ B_decode = tk.Button(
     state=tk.DISABLED,
     text='Decode',
 )
+
 B_decode.pack_configure(
     expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.LEFT
 )
+
 Hovertip(
     B_decode,
     text=f'[{SHORTCUT_DECODE}]\n{decode.__doc__}',
@@ -977,7 +987,9 @@ F_info = tk.Frame(
     bg=C_BLACK,
     relief=tk.RIDGE,
 )
+
 F_info.grid_propagate(True)
+
 F_info.grid_rowconfigure(index=0, weight=1)
 F_info.grid_rowconfigure(index=1, weight=1)
 F_info.grid_columnconfigure(index=0, weight=0)
@@ -1000,6 +1012,7 @@ tk.Label(
     state=tk.NORMAL,
     text='Opened',
 ).grid_configure(row=0, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW)
+
 tk.Entry(
     F_info,
     bd=B_NONE,
@@ -1009,6 +1022,7 @@ tk.Entry(
     state='readonly',
     textvariable=(Var_opened := tk.StringVar()),
 ).grid_configure(row=0, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW)
+
 B_open = tk.Button(
     F_info,
     activebackground=C_WHITE,
@@ -1021,7 +1035,9 @@ B_open = tk.Button(
     state=tk.NORMAL,
     text='Open',
 )
+
 B_open.grid_configure(row=0, column=2, padx=PADX, pady=PADY, sticky=tk.NSEW)
+
 Hovertip(
     B_open,
     text=f'[{SHORTCUT_OPEN_FILE}]\n{openasfile.__doc__}',
@@ -1040,6 +1056,7 @@ tk.Label(
     state=tk.NORMAL,
     text='Output',
 ).grid_configure(row=1, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW)
+
 tk.Entry(
     F_info,
     bd=B_NONE,
@@ -1049,6 +1066,7 @@ tk.Entry(
     state='readonly',
     textvariable=(Var_output := tk.StringVar()),
 ).grid_configure(row=1, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW)
+
 B_show = tk.Button(
     F_info,
     activebackground=C_WHITE,
@@ -1061,7 +1079,9 @@ B_show = tk.Button(
     state=tk.DISABLED,
     text='Show',
 )
+
 B_show.grid_configure(row=1, column=2, padx=PADX, pady=PADY, sticky=tk.NSEW)
+
 Hovertip(
     B_show,
     text=show.__doc__,
@@ -1079,7 +1099,9 @@ F_prng = tk.LabelFrame(
     relief=tk.RIDGE,
     text='PRNG',
 )
+
 F_prng.pack_propagate(True)
+
 F_prng.grid_configure(
     row=1, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
@@ -1097,10 +1119,13 @@ E_prng = tk.Entry(
     show=ENTRY_SHOW_CHAR,
     state=tk.DISABLED,
 )
+
 E_prng.bind(V_EVENT_PASTE, lambda e: 'break')
+
 E_prng.pack_configure(
     expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.TOP
 )
+
 Hovertip(
     E_prng,
     text='Pseudo-random number generator seed.',
@@ -1118,7 +1143,9 @@ F_crypto = tk.LabelFrame(
     relief=tk.RIDGE,
     text='Encryption',
 )
+
 F_crypto.pack_propagate(True)
+
 F_crypto.grid_configure(
     row=2, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
@@ -1133,10 +1160,13 @@ X_ciphers = ttk.Combobox(
     state=tk.DISABLED,
     values=tuple(crypto.ciphers),
 )
+
 X_ciphers.current(1)
+
 X_ciphers.pack_configure(
     expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.TOP
 )
+
 Hovertip(
     X_ciphers,
     text=crypto.__doc__,
@@ -1162,10 +1192,13 @@ E_key = tk.Entry(
     validate='key',
     vcmd=name_vcmd[X_ciphers.get()],
 )
+
 E_key.bind(V_EVENT_PASTE, lambda e: 'break')
+
 E_key.pack_configure(
     expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.TOP
 )
+
 Hovertip(
     E_key,
     text='Cipher key.',
@@ -1183,7 +1216,9 @@ F_lsb = tk.LabelFrame(
     relief=tk.RIDGE,
     text='LSB',
 )
+
 F_lsb.pack_propagate(True)
+
 F_lsb.grid_configure(
     row=3, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
@@ -1231,7 +1266,9 @@ F_book = tk.LabelFrame(
     relief=tk.RIDGE,
     text=template.substitute(mapping),
 )
+
 F_book.pack_propagate(True)
+
 F_book.grid_configure(
     row=1, column=1, rowspan=3, padx=PADX, pady=PADY, sticky=tk.NSEW
 )
@@ -1245,6 +1282,7 @@ N_stego = ttk.Notebook(
     F_book,
     takefocus=True,
 )
+
 N_stego.pack_configure(
     expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.TOP
 )
