@@ -63,7 +63,7 @@ class Globals:
     """Global "control" variables for the internal module."""
 
     band_lsb: tuple[tuple[int, int], ...]
-    ch_limit: int
+    limit: int
 
 
 @dataclasses.dataclass
@@ -83,8 +83,6 @@ class Picture:
 
 def openasfile(event: tk.Event) -> str | None:
     """Open a picture file."""
-    root.wm_title(wm_title := root.wm_title() + '*')
-
     retry = True
     while retry:
         file = askopenfilename(
@@ -144,27 +142,24 @@ def openasfile(event: tk.Event) -> str | None:
         Picture.filename = os.path.basename(filename)
         Picture.extension = extension
 
-        ch_capacity = (Picture.pixel * len(band_scale)) - len(DELIMITER)
+        capacity = (Picture.pixel * len(band_scale)) - len(DELIMITER)
 
         Picture.properties = (
-            f'Capacity: {ch_capacity} characters',
+            f'Capacity: {capacity} characters',
             f'Width: {width} pixels',
             f'Height: {height} pixels',
             f'Bit depth: {B * len(Picture.mode)} ({Picture.mode})',
-            f'Size: {os.stat(file).st_size} bytes',
         )
 
         Var_opened.set(file)
         Var_output.set('')
 
-        notebook['decode'].delete('1.0', tk.END)
-
         B_show['state'] = tk.DISABLED
 
-        root.wm_title(wm_title.rstrip('*'))
+        notebook['decode'].delete('1.0', tk.END)
+
         return None
 
-    root.wm_title(wm_title.rstrip('*'))
     return 'break'  # No more event processing for "V_EVENT_OPEN_FILE"
 
 
@@ -223,7 +218,7 @@ def encode(event: tk.Event):
     message = cipher.encrypt()
 
     # Check the character limit, for Hill cipher :/
-    if (cipher.name == crypto.Hill.name) and (len(message) > Globals.ch_limit):
+    if (cipher.name == crypto.Hill.name) and (len(message) > Globals.limit):
         showerror(
             title='Encode',
             message='Cipher text length exceeds the character limit.',
@@ -298,11 +293,11 @@ def encode(event: tk.Event):
         showerror(title='Save', message=str(err))
         return
 
-    notebook['decode'].delete('1.0', tk.END)
-
     Var_output.set(output)
 
     B_show['state'] = tk.NORMAL
+
+    notebook['decode'].delete('1.0', tk.END)
 
     showinfo(title='Encode', message='File is encoded!')
 
@@ -360,14 +355,14 @@ def decode(event: tk.Event):
     cipher.txt = message
     message = cipher.decrypt()
 
+    Var_output.set('')
+
+    B_show['state'] = tk.DISABLED
+
     notebook['decode'].delete('1.0', tk.END)
     notebook['decode'].insert('1.0', message)
 
     N_stego.select(notebook['decode'])
-
-    Var_output.set('')
-
-    B_show['state'] = tk.DISABLED
 
     showinfo(title='Decode', message='File is decoded!')
 
@@ -504,20 +499,20 @@ def refresh(event: tk.Event):
     """The ultimate refresh function."""
     widget = event.widget
 
-    cipher_name = X_ciphers.get()
+    ciphername = X_ciphers.get()
 
     if widget is not X_ciphers:
         pass
     else:
         E_key.delete('0', tk.END)
-        E_key['vcmd'] = name_vcmd[cipher_name]  # Update validate command
+        E_key['vcmd'] = name_vcmd[ciphername]  # Update validate command
 
     message = notebook['encode'].get('1.0', tk.END)[:-1]
 
     key = E_key.get()
 
     # Activate/deactivate encode/decode features
-    if (not key) and cipher_name:
+    if (not key) and ciphername:
         root.unbind(V_EVENT_ENCODE)
         root.unbind(V_EVENT_DECODE)
         M_file.entryconfigure(MENU_ITEM_INDEX_ENCODE, state=tk.DISABLED)
@@ -538,8 +533,8 @@ def refresh(event: tk.Event):
             B_encode['state'] = tk.DISABLED
 
     band_lsb = {
-        band: int(lsb)
-        for band, scl in band_scale.items() if (lsb := scl.get()) != 0
+        band: lsb
+        for band, scl in band_scale.items() if (lsb := int(scl.get())) != 0
     }
 
     if widget not in band_scale.values():
@@ -554,29 +549,29 @@ def refresh(event: tk.Event):
             widget.set(1)
             band_lsb = {list(band_scale.values()).index(widget): 1}
 
-    ch_limit = ((Picture.pixel * sum(band_lsb.values())) // B) - len(DELIMITER)
+    limit = ((Picture.pixel * sum(band_lsb.values())) // B) - len(DELIMITER)
 
-    if len(message) > ch_limit:
+    if len(message) > limit:
         # Delete excess message
         notebook['encode'].delete('1.0', tk.END)
-        notebook['encode'].insert('1.0', message[:ch_limit])
+        notebook['encode'].insert('1.0', message[:limit])
 
-    ch_used = len(notebook['encode'].get('1.0', tk.END)[:-1])
+    used = len(notebook['encode'].get('1.0', tk.END)[:-1])
 
-    ch_rem = ch_limit - ch_used
+    left = limit - used
 
-    F_book['text'] = template.substitute(use=ch_used, rem=ch_rem, lim=ch_limit)
+    F_book['text'] = template.substitute(used=used, left=left, limit=limit)
 
     if event.char in ['']:
         pass
     else:
-        if (widget is notebook['encode']) or (ch_rem == 0):
+        if (widget is notebook['encode']) or (left == 0):
             # Scroll such that the character at "INSERT" index is visible
             notebook['encode'].see(notebook['encode'].index(tk.INSERT))
 
     Globals.band_lsb = tuple(band_lsb.items())
 
-    Globals.ch_limit = ch_limit
+    Globals.limit = limit
 
 
 def exception(*msg) -> NoReturn:
@@ -1223,13 +1218,9 @@ for scale in band_scale.values():
 ###################
 # Frame: Notebook #
 ###################
-mapping = {
-    'use': 0,
-    'rem': 0,
-    'lim': 0,
-}
+mapping = {'used': 0, 'left': 0, 'limit': 0}
 
-template = string.Template('$use+$rem=$lim')
+template = string.Template('$used+$left=$limit')
 
 F_book = tk.LabelFrame(
     frame,
@@ -1258,7 +1249,7 @@ N_stego.pack_configure(
     expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.TOP
 )
 
-for title in ('encode', 'decode'):
+for title in ['encode', 'decode']:
     tab = ScrolledText(
         N_stego,
         bd=B_NONE,
