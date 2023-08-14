@@ -81,7 +81,7 @@ class Picture:
     properties: tuple[str, ...]
 
 
-def open_file(event: tk.Event) -> str | None:
+def openasfile(event: tk.Event) -> str | None:
     """Open a picture file."""
     root.wm_title(wm_title := root.wm_title() + '*')
 
@@ -168,7 +168,7 @@ def open_file(event: tk.Event) -> str | None:
     return 'break'  # No more event processing for "V_EVENT_OPEN_FILE"
 
 
-def open_text(event: tk.Event) -> str | None:
+def openastext(event: tk.Event) -> str | None:
     """Read the contents of a file as text."""
     retry = True
     while retry:
@@ -443,26 +443,26 @@ def popup(event: tk.Event):
         M_edit.grab_release()
 
 
-def toggle_always_on_top():
+def always():
     """Toggle "Always on Top" state."""
     topmost = root.wm_attributes()[root.wm_attributes().index('-topmost') + 1]
     root.wm_attributes('-topmost', 1 - topmost)
 
 
-def toggle_transparent():
+def transparent():
     """Toggle "Transparent" state."""
     alpha = root.wm_attributes()[root.wm_attributes().index('-alpha') + 1]
     root.wm_attributes('-alpha', 1.5 - alpha)
 
 
-def refresh_activate(event: tk.Event):
-    """When a file is opened, this method binds widgets to "F5" once."""
-    # Bind again (unbind)
-    root.bind(V_EVENT_OPEN_FILE, open_file)
+def activate(event: tk.Event):
+    """When a file is opened, this method binds widgets to "refresh" once."""
+    # Unbind to prevent reactivation
+    root.bind(V_EVENT_OPEN_FILE, openasfile)
     root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
 
     M_file.entryconfigure(MENU_ITEM_INDEX_OPEN_TEXT, state=tk.NORMAL)
-    root.bind(V_EVENT_OPEN_TEXT, open_text)
+    root.bind(V_EVENT_OPEN_TEXT, openastext)
     root.bind(V_EVENT_OPEN_TEXT, refresh, add='+')
 
     M_file.entryconfigure(MENU_ITEM_INDEX_IMAGE_PROPERTIES, state=tk.NORMAL)
@@ -501,7 +501,7 @@ def refresh_activate(event: tk.Event):
 
 
 def refresh(event: tk.Event):
-    """The ultimate refresh function, aka F5."""
+    """The ultimate refresh function."""
     widget = event.widget
 
     cipher_name = X_ciphers.get()
@@ -693,8 +693,8 @@ M_file.add_command(
     state=tk.NORMAL,
     underline=3,
 )
-root.bind(V_EVENT_OPEN_FILE, open_file)
-root.bind(V_EVENT_OPEN_FILE, refresh_activate, add='+')
+root.bind(V_EVENT_OPEN_FILE, openasfile)
+root.bind(V_EVENT_OPEN_FILE, activate, add='+')
 root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
 M_file.add_command(
     command=lambda: root.event_generate(V_EVENT_OPEN_TEXT),
@@ -841,13 +841,13 @@ menu.add_cascade(label='Window', menu=M_window, state=tk.NORMAL, underline=0)
 IMAGE_RESET = tk.PhotoImage(data=IMAGE_DATA_RESET)
 
 M_window.add_checkbutton(
-    command=toggle_always_on_top,
+    command=always,
     label='Always on Top',
     state=tk.NORMAL,
     underline=7,
 )
 M_window.add_checkbutton(
-    command=toggle_transparent,
+    command=transparent,
     label='Transparent',
     state=tk.NORMAL,
     underline=0,
@@ -1029,7 +1029,7 @@ B_open = tk.Button(
 B_open.grid_configure(row=0, column=2, padx=PADX, pady=PADY, sticky=tk.NSEW)
 Hovertip(
     B_open,
-    text=f'[{SHORTCUT_OPEN_FILE}]\n{open_file.__doc__}',
+    text=f'[{SHORTCUT_OPEN_FILE}]\n{openasfile.__doc__}',
 )
 
 #######################
