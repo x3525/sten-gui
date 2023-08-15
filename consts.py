@@ -31,12 +31,12 @@ B_WIDE = 5
 ##########
 # Colors #
 ##########
-C_BLACK = '#000000'
-C_BLUE = '#0000FF'
-C_BUTTON = '#F0F0F0'
-C_GREEN = '#00FF00'
-C_RED = '#FF0000'
-C_WHITE = '#FFFFFF'
+BLACK = '#000000'
+BLUE = '#0000FF'
+BUTTON = '#F0F0F0'
+GREEN = '#00FF00'
+RED = '#FF0000'
+WHITE = '#FFFFFF'
 
 ############
 # Paddings #
@@ -87,6 +87,8 @@ SHORTCUT_UNDO = 'Ctrl+Z'
 #################
 # Miscellaneous #
 #################
+RGB = 3
+
 B = 8
 
 DELIMITER = '$t3nb7$3rh@tC3l!k'

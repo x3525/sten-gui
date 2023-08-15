@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with Sten.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import collections
 import ctypes
 import dataclasses
 import logging
@@ -62,7 +63,7 @@ warnings.simplefilter('error', Image.DecompressionBombWarning)
 class Globals:
     """Global "control" variables for the internal module."""
 
-    band_lsb: tuple[tuple[int, int], ...]
+    i_lsb: tuple[tuple[int, int], ...]
     limit: int
 
 
@@ -142,7 +143,7 @@ def openasfile(event: tk.Event) -> str | None:
         Picture.filename = os.path.basename(filename)
         Picture.extension = extension
 
-        capacity = (Picture.pixel * len(band_scale)) - len(DELIMITER)
+        capacity = (Picture.pixel * RGB) - len(DELIMITER)
 
         Picture.properties = (
             f'Capacity: {capacity} characters',
@@ -271,7 +272,7 @@ def encode(event: tk.Event):
 
     i = 0
 
-    for pix, (band, lsb) in product(pixels, Globals.band_lsb):
+    for pix, (band, lsb) in product(pixels, Globals.i_lsb):
         if i >= bits_length:
             break
 
@@ -321,10 +322,10 @@ def decode(event: tk.Event):
         random.seed(seed)
         random.shuffle(pixels)
 
-    for band_lsb in al if config['brute'].get() else (Globals.band_lsb,):
+    for i_lsb in possibilities if config['brute'].get() else (Globals.i_lsb,):
         bits, message = '', ''
 
-        for pix, (band, lsb) in product(pixels, band_lsb):
+        for pix, (band, lsb) in product(pixels, i_lsb):
             if message.endswith(DELIMITER):
                 break  # No need to go any further
 
@@ -410,11 +411,10 @@ def close():
         if not askokcancel(
                 title='Confirm Exit',
                 message='Are you sure you want to exit?',
-                detail='(You can change this behaviour in configuration file)',
         ):
             return
-    params = [(str(int(var.get())), k) for k, var in config.items()]
-    database.update(*params)
+    database.truncate()
+    database.insert([(row,) for row, var in config.items() if var.get()])
     root.destroy()
 
 
@@ -487,7 +487,7 @@ def activate(event: tk.Event):
     notebook['encode'].bind('<KeyRelease>', refresh)
     notebook['decode'].bind('<KeyPress>', lambda e: 'break')
 
-    for scl in band_scale.values():
+    for scl in scales:
         scl['state'] = tk.NORMAL
         scl.bind('<ButtonRelease-1>', refresh)  # Left mouse button release
         scl.bind('<ButtonRelease-2>', refresh)  # Middle mouse button release
@@ -534,24 +534,24 @@ def refresh(event: tk.Event):
             M_file.entryconfigure(MENU_ITEM_INDEX_ENCODE, state=tk.DISABLED)
             B_encode['state'] = tk.DISABLED
 
-    band_lsb = {
+    i_lsb = {
         band: lsb
-        for band, scl in band_scale.items() if (lsb := int(scl.get())) != 0
+        for band, scl in enumerate(scales) if (lsb := int(scl.get())) != 0
     }
 
-    if widget not in band_scale.values():
+    if widget not in scales:
         pass
     else:
-        if len(band_lsb) != 0:
+        if len(i_lsb) != 0:
             # LSB warning?
-            widget['fg'] = C_BLACK if (widget.get() < 4) else C_RED
+            widget['fg'] = BLACK if (widget.get() < 4) else RED
         # Fix LSB
         else:
-            widget['fg'] = C_BLACK
+            widget['fg'] = BLACK
             widget.set(1)
-            band_lsb = {list(band_scale.values()).index(widget): 1}
+            i_lsb = {scales.index(widget): 1}
 
-    limit = ((Picture.pixel * sum(band_lsb.values())) // B) - len(DELIMITER)
+    limit = ((Picture.pixel * sum(i_lsb.values())) // B) - len(DELIMITER)
 
     if len(message) > limit:
         # Delete excess message
@@ -571,7 +571,7 @@ def refresh(event: tk.Event):
             # Scroll such that the character at "INSERT" index is visible
             notebook['encode'].see(notebook['encode'].index(tk.INSERT))
 
-    Globals.band_lsb = tuple(band_lsb.items())
+    Globals.i_lsb = tuple(i_lsb.items())
 
     Globals.limit = limit
 
@@ -906,7 +906,7 @@ M_help.add_command(
 frame = tk.Frame(
     root,
     bd=B_NONE,
-    bg=C_BLACK,
+    bg=BLACK,
     relief=tk.FLAT,
 )
 
@@ -928,7 +928,7 @@ frame.pack_configure(
 F_stego = tk.Frame(
     frame,
     bd=B_THIN,
-    bg=C_BLACK,
+    bg=BLACK,
     relief=tk.RIDGE,
 )
 
@@ -943,16 +943,17 @@ F_stego.grid_configure(
 #################
 B_encode = tk.Button(
     F_stego,
-    activebackground=C_WHITE,
+    activebackground=WHITE,
     anchor=tk.CENTER,
     bd=B_WIDE,
-    bg=C_WHITE,
+    bg=WHITE,
     command=lambda: root.event_generate(V_EVENT_ENCODE),
     compound=tk.LEFT,
-    fg=C_BLACK,
+    fg=BLACK,
     image=IMAGE_ENCODE,
     relief=tk.FLAT,
     state=tk.DISABLED,
+    takefocus=True,
     text='Encode',
 )
 
@@ -970,16 +971,17 @@ Hovertip(
 #################
 B_decode = tk.Button(
     F_stego,
-    activebackground=C_WHITE,
+    activebackground=WHITE,
     anchor=tk.CENTER,
     bd=B_WIDE,
-    bg=C_WHITE,
+    bg=WHITE,
     command=lambda: root.event_generate(V_EVENT_DECODE),
     compound=tk.LEFT,
-    fg=C_BLACK,
+    fg=BLACK,
     image=IMAGE_DECODE,
     relief=tk.FLAT,
     state=tk.DISABLED,
+    takefocus=True,
     text='Decode',
 )
 
@@ -998,7 +1000,7 @@ Hovertip(
 F_info = tk.Frame(
     frame,
     bd=B_THIN,
-    bg=C_BLACK,
+    bg=BLACK,
     relief=tk.RIDGE,
 )
 
@@ -1020,33 +1022,36 @@ tk.Label(
     F_info,
     anchor=tk.CENTER,
     bd=B_NONE,
-    bg=C_BLACK,
-    fg=C_WHITE,
+    bg=BLACK,
+    fg=WHITE,
     relief=tk.FLAT,
     state=tk.NORMAL,
+    takefocus=False,
     text='Opened',
 ).grid_configure(row=0, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW)
 
 tk.Entry(
     F_info,
     bd=B_NONE,
-    fg=C_BLACK,
-    readonlybackground=C_BUTTON,
+    fg=BLACK,
+    readonlybackground=BUTTON,
     relief=tk.FLAT,
     state='readonly',
+    takefocus=False,
     textvariable=(Var_opened := tk.StringVar()),
 ).grid_configure(row=0, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW)
 
 B_open = tk.Button(
     F_info,
-    activebackground=C_WHITE,
+    activebackground=WHITE,
     anchor=tk.CENTER,
     bd=B_WIDE,
-    bg=C_WHITE,
+    bg=WHITE,
     command=lambda: root.event_generate(V_EVENT_OPEN_FILE),
-    fg=C_BLACK,
+    fg=BLACK,
     relief=tk.FLAT,
     state=tk.NORMAL,
+    takefocus=True,
     text='Open',
 )
 
@@ -1064,33 +1069,36 @@ tk.Label(
     F_info,
     anchor=tk.CENTER,
     bd=B_NONE,
-    bg=C_BLACK,
-    fg=C_WHITE,
+    bg=BLACK,
+    fg=WHITE,
     relief=tk.FLAT,
     state=tk.NORMAL,
+    takefocus=False,
     text='Output',
 ).grid_configure(row=1, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW)
 
 tk.Entry(
     F_info,
     bd=B_NONE,
-    fg=C_BLACK,
-    readonlybackground=C_BUTTON,
+    fg=BLACK,
+    readonlybackground=BUTTON,
     relief=tk.FLAT,
     state='readonly',
+    takefocus=False,
     textvariable=(Var_output := tk.StringVar()),
 ).grid_configure(row=1, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW)
 
 B_show = tk.Button(
     F_info,
-    activebackground=C_WHITE,
+    activebackground=WHITE,
     anchor=tk.CENTER,
     bd=B_WIDE,
-    bg=C_WHITE,
+    bg=WHITE,
     command=show,
-    fg=C_BLACK,
+    fg=BLACK,
     relief=tk.FLAT,
     state=tk.DISABLED,
+    takefocus=True,
     text='Show',
 )
 
@@ -1107,8 +1115,8 @@ Hovertip(
 F_prng = tk.LabelFrame(
     frame,
     bd=B_THIN,
-    bg=C_BLACK,
-    fg=C_WHITE,
+    bg=BLACK,
+    fg=WHITE,
     labelanchor=tk.S,
     relief=tk.RIDGE,
     text='PRNG',
@@ -1126,12 +1134,13 @@ F_prng.grid_configure(
 E_prng = tk.Entry(
     F_prng,
     bd=B_NONE,
-    bg=C_WHITE,
-    disabledbackground=C_BUTTON,
-    fg=C_BLACK,
+    bg=WHITE,
+    disabledbackground=BUTTON,
+    fg=BLACK,
     relief=tk.FLAT,
     show=ENTRY_SHOW_CHAR,
     state=tk.DISABLED,
+    takefocus=True,
 )
 
 E_prng.bind(V_EVENT_PASTE, lambda e: 'break')
@@ -1151,8 +1160,8 @@ Hovertip(
 F_crypto = tk.LabelFrame(
     frame,
     bd=B_THIN,
-    bg=C_BLACK,
-    fg=C_WHITE,
+    bg=BLACK,
+    fg=WHITE,
     labelanchor=tk.S,
     relief=tk.RIDGE,
     text='Encryption',
@@ -1169,9 +1178,10 @@ F_crypto.grid_configure(
 ####################
 X_ciphers = ttk.Combobox(
     F_crypto,
-    background=C_WHITE,
-    foreground=C_BLACK,
+    background=WHITE,
+    foreground=BLACK,
     state=tk.DISABLED,
+    takefocus=True,
     values=tuple(crypto.ciphers),
 )
 
@@ -1197,12 +1207,13 @@ name_vcmd = {
 E_key = tk.Entry(
     F_crypto,
     bd=B_NONE,
-    bg=C_WHITE,
-    disabledbackground=C_BUTTON,
-    fg=C_BLACK,
+    bg=WHITE,
+    disabledbackground=BUTTON,
+    fg=BLACK,
     relief=tk.FLAT,
     show=ENTRY_SHOW_CHAR,
     state=tk.DISABLED,
+    takefocus=True,
     validate='key',
     vcmd=name_vcmd[X_ciphers.get()],
 )
@@ -1224,8 +1235,8 @@ Hovertip(
 F_lsb = tk.LabelFrame(
     frame,
     bd=B_THIN,
-    bg=C_BLACK,
-    fg=C_WHITE,
+    bg=BLACK,
+    fg=WHITE,
     labelanchor=tk.S,
     relief=tk.RIDGE,
     text='LSB',
@@ -1240,18 +1251,16 @@ F_lsb.grid_configure(
 ##############
 # LSB Scales #
 ##############
-band_scale = {
-    0: tk.Scale(F_lsb, fg=C_BLACK, from_=B, to=0, troughcolor=C_RED),
-    1: tk.Scale(F_lsb, fg=C_BLACK, from_=B, to=0, troughcolor=C_GREEN),
-    2: tk.Scale(F_lsb, fg=C_BLACK, from_=B, to=0, troughcolor=C_BLUE),
-}  # Stick with this order!
+scales = [
+    tk.Scale(F_lsb, fg=BLACK, from_=B, to=0, troughcolor=color)
+    for color in (RED, GREEN, BLUE)
+]
 
-al = tuple(
-    tuple(compress(zip(band_scale, tup), tup))
-    for tup in product(range(B + 1), repeat=len(band_scale))
-)  # All possibilities
+possibilities = [
+    tuple(compress(enumerate(t), t)) for t in product(range(B + 1), repeat=RGB)
+]
 
-for scale in band_scale.values():
+for scale in scales:
     scale.set(1)  # Do not change the position of this line!
     scale.configure(
         bd=B_THIN,
@@ -1259,6 +1268,7 @@ for scale in band_scale.values():
         sliderlength=50,
         sliderrelief=tk.RAISED,
         state=tk.DISABLED,
+        takefocus=True,
     )
     scale.pack_configure(
         expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.LEFT
@@ -1274,8 +1284,8 @@ template = string.Template('$used+$left=$limit')
 F_book = tk.LabelFrame(
     frame,
     bd=B_THIN,
-    bg=C_BLACK,
-    fg=C_WHITE,
+    bg=BLACK,
+    fg=WHITE,
     labelanchor=tk.SE,
     relief=tk.RIDGE,
     text=template.substitute(mapping),
@@ -1305,11 +1315,12 @@ for title in ['encode', 'decode']:
     tab = ScrolledText(
         N_stego,
         bd=B_NONE,
-        bg=C_WHITE,
-        fg=C_BLACK,
+        bg=WHITE,
+        fg=BLACK,
         relief=tk.FLAT,
         state=tk.NORMAL,
         tabs=1,
+        takefocus=False,
         undo=True,
         wrap='char',
     )
@@ -1327,13 +1338,14 @@ for title in ['encode', 'decode']:
 #################
 # Configuration #
 #################
-db_name = os.path.join(os.path.dirname(__file__), 'sten.db')
+database = Db(os.path.join(os.path.dirname(__file__), 'sten.db'))
 
-defaults = [('confirm', '1'), ('brute', '0')]
+database.create()
 
-database = Db(db_name, 'sten', *defaults)
-
-config = {k: tk.BooleanVar(value=bool(int(v))) for k, v in database.fetch()}
+config = collections.defaultdict(
+    lambda: tk.BooleanVar(value=False),
+    {row: tk.BooleanVar(value=True) for row, in database.fetchall()}
+)
 
 if __name__ == '__main__':
     root.mainloop()

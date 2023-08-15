@@ -1,42 +1,42 @@
 """Database module."""
 
 import sqlite3
+from contextlib import contextmanager
+from typing import Iterator
 
 
 class Db:
     """Database management class."""
 
-    def __init__(self, name: str, table: str, *defaults: tuple[str, str]):
+    def __init__(self, name: str):
         self.name = name
-        self.table = table
-        self.defaults = defaults
 
-    def fetch(self) -> list[tuple[str, str]]:
-        """Fetch data from the database."""
+    @contextmanager
+    def connection(self) -> Iterator[sqlite3.Cursor]:
+        """Open a connection, commit, and then close it automatically."""
         con = sqlite3.connect(self.name)
         cur = con.cursor()
-        try:
-            cur.execute(f'CREATE TABLE {self.table}(k,v)')
-        except sqlite3.Error:
-            pass
-        else:
-            params = self.defaults
-            cur.executemany(f'INSERT INTO {self.table} VALUES(?,?)', params)
-            con.commit()
-        finally:
-            result = cur.execute(f'SELECT * FROM {self.table}')
-            data = result.fetchall()
-            con.close()
-        return data
+        yield cur
+        con.commit()
+        con.close()
 
-    def update(self, *params: tuple[str, str]):
-        """Update the database."""
-        con = sqlite3.connect(self.name)
-        cur = con.cursor()
-        try:
-            cur.executemany(f'UPDATE {self.table} SET v=? WHERE k=?', params)
-            con.commit()
-        except sqlite3.Error:
-            pass
-        finally:
-            con.close()
+    def create(self):
+        """Create table."""
+        with self.connection() as cur:
+            cur.execute('CREATE TABLE IF NOT EXISTS _ (_ UNIQUE)')
+
+    def fetchall(self) -> list[tuple[str]]:
+        """Fetch all rows."""
+        with self.connection() as cur:
+            cur.execute('SELECT * FROM _')
+            return cur.fetchall()
+
+    def insert(self, rows: list[tuple[str]]):
+        """Insert rows."""
+        with self.connection() as cur:
+            cur.executemany('INSERT OR IGNORE INTO _ VALUES (?)', rows)
+
+    def truncate(self):
+        """Truncate table."""
+        with self.connection() as cur:
+            cur.execute('DELETE FROM _')
