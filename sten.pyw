@@ -91,6 +91,7 @@ def openasfile(event: tk.Event) -> str | None:
             initialdir='~',
             title='Open File',
         )
+
         if not file:
             break
 
@@ -157,8 +158,6 @@ def openasfile(event: tk.Event) -> str | None:
 
         B_show['state'] = tk.DISABLED
 
-        notebook['decode'].delete('1.0', tk.END)
-
         return None
 
     return 'break'  # No more event processing for "V_EVENT_OPEN_FILE"
@@ -173,6 +172,7 @@ def openastext(event: tk.Event) -> str | None:
             initialdir='~',
             title='Open Text',
         )
+
         if not file:
             break
 
@@ -240,7 +240,7 @@ def encode(event: tk.Event):
         defaultextension=Picture.extension,
         filetypes=[('Picture Files', EXTENSIONS_PICTURE)],
         initialfile=f'{Picture.filename}-encoded',
-        title='Save',
+        title='Save As',
     )
     if not output:
         return
@@ -249,7 +249,7 @@ def encode(event: tk.Event):
 
     if extension.casefold() not in EXTENSIONS_PICTURE:
         showerror(
-            title='Save',
+            title='Save As',
             message=f'Not a valid extension: {extension}',
             detail=f'Valid extensions: {EXTENSIONS_PICTURE_PRETTY}',
         )
@@ -291,14 +291,12 @@ def encode(event: tk.Event):
     try:
         Image.fromarray(array).save(output)
     except OSError as err:
-        showerror(title='Save', message=str(err))
+        showerror(title='Save As', message=str(err))
         return
 
     Var_output.set(output)
 
     B_show['state'] = tk.NORMAL
-
-    notebook['decode'].delete('1.0', tk.END)
 
     showinfo(title='Encode', message='File is encoded!')
 
