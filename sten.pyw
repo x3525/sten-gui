@@ -60,10 +60,10 @@ warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 
 @dataclasses.dataclass
-class Globals:
+class Globs:
     """Global "control" variables for the internal module."""
 
-    i_lsb: tuple[tuple[int, int], ...]
+    band_lsb: tuple[tuple[int, int], ...]
     limit: int
 
 
@@ -192,9 +192,9 @@ def openastext(event: tk.Event) -> str | None:
 
 def encode(event: tk.Event):
     """Create a stego-object."""
-    cipher_name, key = X_ciphers.get(), E_key.get()
+    name, key = X_ciphers.get(), E_key.get()
 
-    if (not key) and cipher_name:
+    if (not key) and name:
         return
 
     message = notebook['encode'].get('1.0', tk.END)[:-1]
@@ -211,7 +211,7 @@ def encode(event: tk.Event):
         return
 
     try:
-        cipher = crypto.ciphers[cipher_name](key, message)
+        cipher = crypto.ciphers[name](key, message)
     except CryptoErrorGroup as err:
         showerror(title='Encode', message=str(err))
         return
@@ -219,7 +219,7 @@ def encode(event: tk.Event):
     message = cipher.encrypt()
 
     # Check the character limit, for Hill cipher :/
-    if (cipher.name == crypto.Hill.name) and (len(message) > Globals.limit):
+    if (cipher.name == crypto.Hill.name) and (len(message) > Globs.limit):
         showerror(
             title='Encode',
             message='Cipher text length exceeds the character limit.',
@@ -272,7 +272,7 @@ def encode(event: tk.Event):
 
     i = 0
 
-    for pix, (band, lsb) in product(pixels, Globals.i_lsb):
+    for pix, (band, lsb) in product(pixels, Globs.band_lsb):
         if i >= bits_length:
             break
 
@@ -303,13 +303,13 @@ def encode(event: tk.Event):
 
 def decode(event: tk.Event):
     """Extract a hidden message from a stego-object."""
-    cipher_name, key = X_ciphers.get(), E_key.get()
+    name, key = X_ciphers.get(), E_key.get()
 
-    if (not key) and cipher_name:
+    if (not key) and name:
         return
 
     try:
-        cipher = crypto.ciphers[cipher_name](key)
+        cipher = crypto.ciphers[name](key)
     except CryptoErrorGroup as err:
         showerror(title='Decode', message=str(err))
         return
@@ -320,10 +320,10 @@ def decode(event: tk.Event):
         random.seed(seed)
         random.shuffle(pixels)
 
-    for i_lsb in possibilities if config['brute'].get() else (Globals.i_lsb,):
+    for band_lsb in possibilities if cnf['brute'].get() else (Globs.band_lsb,):
         bits, message = '', ''
 
-        for pix, (band, lsb) in product(pixels, i_lsb):
+        for pix, (band, lsb) in product(pixels, band_lsb):
             if message.endswith(DELIMITER):
                 break  # No need to go any further
 
@@ -388,13 +388,13 @@ def preferences():
         toplevel,
         anchor=tk.W,
         text='Confirm before exiting the program',
-        variable=config['confirm'],
+        variable=cnf['confirm'],
     ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
     tk.Checkbutton(
         toplevel,
         anchor=tk.W,
         text='Use brute force technique to decode',
-        variable=config['brute'],
+        variable=cnf['brute'],
     ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
 
 
@@ -405,14 +405,14 @@ def properties():
 
 def close():
     """Destroy the main window."""
-    if config['confirm'].get():
+    if cnf['confirm'].get():
         if not askokcancel(
                 title='Confirm Exit',
                 message='Are you sure you want to exit?',
         ):
             return
     database.truncate()
-    database.insert([(row,) for row, var in config.items() if var.get()])
+    database.insert([(row,) for row, var in cnf.items() if var.get()])
     root.destroy()
 
 
@@ -505,7 +505,7 @@ def refresh(event: tk.Event):
         pass
     else:
         E_key.delete('0', tk.END)
-        E_key['vcmd'] = name_vcmd[ciphername]  # Update validate command
+        E_key['vcmd'] = Name_Vcmd[ciphername]  # Update validate command
 
     message = notebook['encode'].get('1.0', tk.END)[:-1]
 
@@ -532,7 +532,7 @@ def refresh(event: tk.Event):
             M_file.entryconfigure(MENU_ITEM_INDEX_ENCODE, state=tk.DISABLED)
             B_encode['state'] = tk.DISABLED
 
-    i_lsb = {
+    band_lsb = {
         band: lsb
         for band, scl in enumerate(scales) if (lsb := int(scl.get())) != 0
     }
@@ -540,16 +540,16 @@ def refresh(event: tk.Event):
     if widget not in scales:
         pass
     else:
-        if len(i_lsb) != 0:
+        if len(band_lsb) != 0:
             # LSB warning?
             widget['fg'] = BLACK if (widget.get() < 4) else RED
         # Fix LSB
         else:
             widget['fg'] = BLACK
             widget.set(1)
-            i_lsb = {scales.index(widget): 1}
+            band_lsb = {scales.index(widget): 1}
 
-    limit = ((Picture.pixel * sum(i_lsb.values())) // B) - len(DELIMITER)
+    limit = ((Picture.pixel * sum(band_lsb.values())) // B) - len(DELIMITER)
 
     if len(message) > limit:
         # Delete excess message
@@ -569,9 +569,9 @@ def refresh(event: tk.Event):
             # Scroll such that the character at "INSERT" index is visible
             notebook['encode'].see(notebook['encode'].index(tk.INSERT))
 
-    Globals.i_lsb = tuple(i_lsb.items())
+    Globs.band_lsb = tuple(band_lsb.items())
 
-    Globals.limit = limit
+    Globs.limit = limit
 
 
 def exception(*msg) -> NoReturn:
@@ -1197,7 +1197,7 @@ Hovertip(
 ####################
 # Cipher Key Entry #
 ####################
-name_vcmd = {
+Name_Vcmd = {
     name: (root.register(cipher.validate), *cipher.code)
     for name, cipher in crypto.ciphers.items()
 }
@@ -1213,7 +1213,7 @@ E_key = tk.Entry(
     state=tk.DISABLED,
     takefocus=True,
     validate='key',
-    vcmd=name_vcmd[X_ciphers.get()],
+    vcmd=Name_Vcmd[X_ciphers.get()],
 )
 
 E_key.bind(V_EVENT_PASTE, lambda e: 'break')
@@ -1340,7 +1340,7 @@ database = Db(os.path.join(os.path.dirname(__file__), 'sten.db'))
 
 database.create()
 
-config = collections.defaultdict(
+cnf = collections.defaultdict(
     lambda: tk.BooleanVar(value=False),
     {row: tk.BooleanVar(value=True) for row, in database.fetchall()}
 )
