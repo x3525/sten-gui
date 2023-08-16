@@ -49,8 +49,8 @@ from PIL import Image, UnidentifiedImageError
 from numpy.typing import NDArray
 
 import crypto
+from config import Json
 from consts import *
-from db import Db
 from error import CryptoErrorGroup
 from icons import *
 from utils import nonascii, splitext
@@ -106,11 +106,11 @@ def openasfile(event: tk.Event) -> str | None:
             continue
 
         try:
-            with Image.open(file) as pic:
-                pixel = math.prod(pic.size)
-                imagedata = list(pic.getdata())
-                dimensions = pic.size
-                mode = pic.mode
+            with Image.open(file) as picture:
+                pixel = math.prod(picture.size)
+                imagedata = list(picture.getdata())
+                dimensions = picture.size
+                mode = picture.mode
         except (
                 OSError,
                 UnidentifiedImageError,
@@ -415,8 +415,9 @@ def close():
                 message='Are you sure you want to exit?',
         ):
             return
-    database.truncate()
-    database.insert([(row,) for row, var in cnf.items() if var.get()])
+
+    js.dump({key: variable.get() for key, variable in cnf.items()})
+
     root.destroy()
 
 
@@ -1347,13 +1348,11 @@ for title in ['encode', 'decode']:
 #################
 # Configuration #
 #################
-database = Db(os.path.join(os.path.dirname(__file__), 'sten.db'))
-
-database.create()
+js = Json(os.path.join(os.path.dirname(__file__), 'sten.json'))
 
 cnf = collections.defaultdict(
     lambda: tk.BooleanVar(value=False),
-    {row: tk.BooleanVar(value=True) for row, in database.fetchall()}
+    {key: tk.BooleanVar(value=value) for key, value in js.load().items()}
 )
 
 if __name__ == '__main__':
