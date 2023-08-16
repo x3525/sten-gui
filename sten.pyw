@@ -427,7 +427,7 @@ def manipulate(v_event: str):
 
     if not widget:
         return
-    if widget is notebook['decode']:
+    if widget is not notebook['encode']:
         return
 
     widget.event_generate(v_event)
