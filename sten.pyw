@@ -223,6 +223,7 @@ def encode(event: tk.Event):
         showerror(
             title='Encode',
             message='Cipher text length exceeds the character limit.',
+            detail=f'Limit: {Globs.limit}',
         )
         return
 
@@ -230,7 +231,7 @@ def encode(event: tk.Event):
         if not askokcancel(
                 title='Encode',
                 message='Some data will be lost!',
-                detail='(Message will contain the delimiter)',
+                detail='Message will contain the delimiter...',
                 icon='warning',
         ):
             return
@@ -242,6 +243,7 @@ def encode(event: tk.Event):
         initialfile=f'{Picture.filename}-encoded',
         title='Save As',
     )
+
     if not output:
         return
 
@@ -354,14 +356,16 @@ def decode(event: tk.Event):
     cipher.txt = message
     message = cipher.decrypt()
 
+    notebook['decode']['state'] = tk.NORMAL
+    notebook['decode'].delete('1.0', tk.END)
+    notebook['decode'].insert('1.0', message)
+    notebook['decode']['state'] = tk.DISABLED
+
+    N_stego.select(notebook['decode'])
+
     Var_output.set('')
 
     B_show['state'] = tk.DISABLED
-
-    notebook['decode'].delete('1.0', tk.END)
-    notebook['decode'].insert('1.0', message)
-
-    N_stego.select(notebook['decode'])
 
     showinfo(title='Decode', message='File is decoded!')
 
@@ -428,10 +432,13 @@ def manipulate(v_event: str):
     widget.event_generate(v_event)
 
 
-def popup(event: tk.Event):
-    """Show context menu."""
+def focusset(event: tk.Event):
+    """Direct input focus to the widget."""
     event.widget.focus_set()
 
+
+def popup(event: tk.Event):
+    """Show context menu."""
     try:
         M_edit.tk_popup(event.x_root, event.y_root)
     finally:
@@ -451,18 +458,20 @@ def transparent():
 
 
 def activate(event: tk.Event):
-    """When a file is opened, this method binds widgets to "refresh" once."""
+    """When a file is opened, this method binds widgets to "F5" once."""
     # Unbind to prevent reactivation
     root.bind(V_EVENT_OPEN_FILE, openasfile)
     root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
 
     M_file.entryconfigure(MENU_ITEM_INDEX_OPEN_TEXT, state=tk.NORMAL)
+
     root.bind(V_EVENT_OPEN_TEXT, openastext)
     root.bind(V_EVENT_OPEN_TEXT, refresh, add='+')
 
     M_file.entryconfigure(MENU_ITEM_INDEX_IMAGE_PROPERTIES, state=tk.NORMAL)
 
     menu.entryconfigure(MENU_INDEX_EDIT, state=tk.NORMAL)
+
     root.bind(V_EVENT_UNDO, refresh)
     root.bind(V_EVENT_REDO, refresh)
     root.bind(V_EVENT_CUT, refresh)
@@ -481,9 +490,11 @@ def activate(event: tk.Event):
 
     N_stego.select(notebook['encode'])
 
-    notebook['encode'].bind('<ButtonPress-3>', popup)
+    notebook['encode']['state'] = tk.NORMAL
+    notebook['encode']['bg'] = WHITE
+    notebook['encode'].bind('<ButtonPress-3>', focusset)
+    notebook['encode'].bind('<ButtonPress-3>', popup, add='+')
     notebook['encode'].bind('<KeyRelease>', refresh)
-    notebook['decode'].bind('<KeyPress>', lambda e: 'break')
 
     for scl in scales:
         scl['state'] = tk.NORMAL
@@ -496,7 +507,7 @@ def activate(event: tk.Event):
 
 
 def refresh(event: tk.Event):
-    """The ultimate refresh function."""
+    """The ultimate refresh function, aka F5."""
     widget = event.widget
 
     ciphername = X_ciphers.get()
@@ -1313,10 +1324,10 @@ for title in ['encode', 'decode']:
     tab = ScrolledText(
         N_stego,
         bd=B_NONE,
-        bg=WHITE,
+        bg=BUTTON,
         fg=BLACK,
         relief=tk.FLAT,
-        state=tk.NORMAL,
+        state=tk.DISABLED,
         tabs=1,
         takefocus=False,
         undo=True,

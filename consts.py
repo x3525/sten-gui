@@ -10,7 +10,7 @@ EXTENSIONS_PICTURE = (
     '.bmp',
     '.png',
 )
-EXTENSIONS_PICTURE_PRETTY = '|'.join(e for e in EXTENSIONS_PICTURE)
+EXTENSIONS_PICTURE_PRETTY = '|'.join(ext for ext in EXTENSIONS_PICTURE)
 
 #########
 # Modes #
@@ -19,7 +19,7 @@ MODES_PICTURE = (
     'RGB',
     'RGBA',
 )
-MODES_PICTURE_PRETTY = '|'.join(m for m in MODES_PICTURE)
+MODES_PICTURE_PRETTY = '|'.join(mode for mode in MODES_PICTURE)
 
 ###########
 # Borders #
