@@ -11,7 +11,7 @@ from typing import Any, Literal
 import numpy as np
 from numpy.typing import NDArray
 
-from error import CryptoErrorGroup
+from error import CryptoExceptionGroup
 
 ALPHABET = string.printable
 ALPHABET_LENGTH = len(ALPHABET)
@@ -104,7 +104,7 @@ class Caesar(Cipher):
         super().__init__(int(key), txt)
 
         if (self.key % ALPHABET_LENGTH) == 0:
-            raise CryptoErrorGroup('Key error. Shift value is equal to 0.')
+            raise CryptoExceptionGroup('Key error. Shift value is equal to 0.')
 
     @staticmethod
     def validate(action, data):
@@ -150,9 +150,9 @@ class Hill(Cipher):
         determinant = round(np.linalg.det(self.key))
 
         if determinant == 0:
-            raise CryptoErrorGroup('Key matrix is not invertible.')
+            raise CryptoExceptionGroup('Key matrix is not invertible.')
         if math.gcd(determinant, ALPHABET_LENGTH) != 1:
-            raise CryptoErrorGroup(
+            raise CryptoExceptionGroup(
                 'Key determinant and alphabet length are not co-prime.'
             )
 

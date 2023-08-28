@@ -51,7 +51,7 @@ from numpy.typing import NDArray
 import crypto
 from config import Json
 from consts import *
-from error import CryptoErrorGroup
+from error import CryptoExceptionGroup
 from icons import *
 from utils import nonascii, splitext
 
@@ -212,7 +212,7 @@ def encode(event: tk.Event):
 
     try:
         cipher = crypto.ciphers[name](key, message)
-    except CryptoErrorGroup as err:
+    except CryptoExceptionGroup as err:
         showerror(title='Encode', message=str(err))
         return
 
@@ -312,7 +312,7 @@ def decode(event: tk.Event):
 
     try:
         cipher = crypto.ciphers[name](key)
-    except CryptoErrorGroup as err:
+    except CryptoExceptionGroup as err:
         showerror(title='Decode', message=str(err))
         return
 
