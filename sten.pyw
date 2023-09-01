@@ -42,7 +42,7 @@ from tkinter.messagebox import (
     showwarning,
 )
 from tkinter.scrolledtext import ScrolledText
-from typing import NoReturn
+from typing import NoReturn, Optional
 
 import numpy as np
 from PIL import Image, UnidentifiedImageError
@@ -82,7 +82,7 @@ class Picture:
     properties: tuple[str, ...]
 
 
-def openasfile(event: tk.Event) -> str | None:
+def openasfile(event: tk.Event) -> Optional[str]:
     """Open a picture file."""
     retry = True
     while retry:
@@ -163,7 +163,7 @@ def openasfile(event: tk.Event) -> str | None:
     return 'break'  # No more event processing for "V_EVENT_OPEN_FILE"
 
 
-def openastext(event: tk.Event) -> str | None:
+def openastext(event: tk.Event) -> Optional[str]:
     """Read the contents of a file as text."""
     retry = True
     while retry:
@@ -595,13 +595,15 @@ def exception(*msg) -> NoReturn:
 
 sys.excepthook = exception
 
-#################
-# Dpi Awareness #
-#################
+####################
+# Windows Specific #
+####################
 PROCESS_PER_MONITOR_DPI_AWARE = 2
 PROCESS_DPI_AWARENESS = PROCESS_PER_MONITOR_DPI_AWARE
 
-ctypes.windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
+with suppress(AttributeError):
+    ctypes.windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(' ')
 
 ###################
 # /!\ Logging /!\ #
@@ -624,8 +626,6 @@ root.pack_propagate(True)
 root.wm_protocol('WM_DELETE_WINDOW', close)
 
 root.wm_iconphoto(True, tk.PhotoImage(data=IMAGE_DATA_STEN))
-
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(' ')
 
 root.wm_title('Sten')
 
