@@ -494,7 +494,7 @@ def activate(event: tk.Event):
     notebook['encode']['state'] = tk.NORMAL
     notebook['encode']['bg'] = WHITE
     notebook['encode'].bind('<ButtonPress-3>', focusset)
-    notebook['encode'].bind('<ButtonPress-3>', popup, add='+')
+    notebook['encode'].bind('<ButtonRelease-3>', popup)
     notebook['encode'].bind('<KeyRelease>', refresh)
 
     for scl in scales:
