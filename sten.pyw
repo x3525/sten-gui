@@ -163,33 +163,6 @@ def openasfile(event: tk.Event) -> Optional[str]:
     return 'break'  # No more event processing for "V_EVENT_OPEN_FILE"
 
 
-def openastext(event: tk.Event) -> Optional[str]:
-    """Read the contents of a file as text."""
-    retry = True
-    while retry:
-        file = askopenfilename(
-            filetypes=[('All Files', EXTENSIONS_ALL)],
-            initialdir='~',
-            title='Open Text',
-        )
-
-        if not file:
-            break
-
-        try:
-            with open(file, encoding='ascii', errors='ignore') as text:
-                notebook['encode'].delete('1.0', tk.END)
-                notebook['encode'].insert('1.0', text.read())
-        except OSError as err:
-            retry = askretrycancel(title='Open Text', message=str(err))
-            continue
-        else:
-            N_stego.select(notebook['encode'])
-            return None
-
-    return 'break'
-
-
 def encode(event: tk.Event):
     """Create a stego-object."""
     name, key = X_ciphers.get(), E_key.get()
@@ -464,11 +437,6 @@ def activate(event: tk.Event):
     root.bind(V_EVENT_OPEN_FILE, openasfile)
     root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
 
-    M_file.entryconfigure(MENU_ITEM_INDEX_OPEN_TEXT, state=tk.NORMAL)
-
-    root.bind(V_EVENT_OPEN_TEXT, openastext)
-    root.bind(V_EVENT_OPEN_TEXT, refresh, add='+')
-
     M_file.entryconfigure(MENU_ITEM_INDEX_IMAGE_PROPERTIES, state=tk.NORMAL)
 
     menu.entryconfigure(MENU_INDEX_EDIT, state=tk.NORMAL)
@@ -675,11 +643,10 @@ M_file = tk.Menu(menu, tearoff=False)
 
 menu.add_cascade(label='File', menu=M_file, state=tk.NORMAL, underline=0)
 
-MENU_ITEM_INDEX_OPEN_TEXT = 1
-MENU_ITEM_INDEX_ENCODE = 3
-MENU_ITEM_INDEX_DECODE = 4
-MENU_ITEM_INDEX_PREFERENCES = 6
-MENU_ITEM_INDEX_IMAGE_PROPERTIES = 7
+MENU_ITEM_INDEX_ENCODE = 2
+MENU_ITEM_INDEX_DECODE = 3
+MENU_ITEM_INDEX_PREFERENCES = 5
+MENU_ITEM_INDEX_IMAGE_PROPERTIES = 6
 
 IMAGE_OPEN_FILE = tk.PhotoImage(data=IMAGE_DATA_OPEN_FILE)
 IMAGE_ENCODE = tk.PhotoImage(data=IMAGE_DATA_ENCODE)
@@ -704,13 +671,6 @@ M_file.add_command(
 root.bind(V_EVENT_OPEN_FILE, openasfile)
 root.bind(V_EVENT_OPEN_FILE, activate, add='+')
 root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
-
-M_file.add_command(
-    command=lambda: root.event_generate(V_EVENT_OPEN_TEXT),
-    label='Open Text',
-    state=tk.DISABLED,
-    underline=5,
-)
 
 M_file.add_separator()
 

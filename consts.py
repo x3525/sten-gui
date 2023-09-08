@@ -3,9 +3,6 @@
 ##############
 # Extensions #
 ##############
-EXTENSIONS_ALL = (
-    '*.*',
-)
 EXTENSIONS_PICTURE = (
     '.bmp',
     '.png',
@@ -52,7 +49,6 @@ V_EVENT_CUT = '<<Cut>>'
 V_EVENT_DECODE = '<<_Decode_>>'
 V_EVENT_ENCODE = '<<_Encode_>>'
 V_EVENT_OPEN_FILE = '<<_OpenFile_>>'
-V_EVENT_OPEN_TEXT = '<<_OpenText_>>'
 V_EVENT_PASTE = '<<Paste>>'
 V_EVENT_REDO = '<<Redo>>'
 V_EVENT_SELECT_ALL = '<<SelectAll>>'
