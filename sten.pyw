@@ -361,6 +361,10 @@ def preferences():
 
     toplevel.wm_title('Preferences')
 
+    toplevel.wm_resizable(False, False)
+
+    root.eval(f'tk::PlaceWindow {toplevel} center')
+
     tk.Checkbutton(
         toplevel,
         anchor=tk.W,
@@ -540,7 +544,7 @@ def refresh(event: tk.Event):
 
     left = limit - used
 
-    F_book['text'] = template.substitute(used=used, left=left, limit=limit)
+    F_book['text'] = information.substitute(used=used, left=left, limit=limit)
 
     if event.char in ['']:
         pass
@@ -615,7 +619,9 @@ WINDOW_H_MIN = WINDOW_H
 
 root.wm_minsize(WINDOW_W_MIN, WINDOW_H_MIN)
 
-GEOMETRY = f'{WINDOW_W}x{WINDOW_H}-{CENTER_X}-{CENTER_Y}'
+geometry = string.Template('${w}x${h}-${x}-${y}')
+
+GEOMETRY = geometry.substitute(w=WINDOW_W, h=WINDOW_H, x=CENTER_X, y=CENTER_Y)
 
 root.wm_geometry(GEOMETRY)
 
@@ -883,9 +889,9 @@ frame = tk.Frame(
 frame.grid_propagate(True)
 
 frame.grid_rowconfigure(index=0, weight=0)
-frame.grid_rowconfigure(index=1, weight=1)
-frame.grid_rowconfigure(index=2, weight=2)
-frame.grid_rowconfigure(index=3, weight=3)
+frame.grid_rowconfigure(index=1, weight=0)
+frame.grid_rowconfigure(index=2, weight=0)
+frame.grid_rowconfigure(index=3, weight=1)
 frame.grid_columnconfigure(index=0, weight=0)
 frame.grid_columnconfigure(index=1, weight=1)
 frame.pack_configure(
@@ -905,7 +911,7 @@ F_stego = tk.Frame(
 F_stego.pack_propagate(True)
 
 F_stego.grid_configure(
-    row=0, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
+    row=0, column=0, padx=PX, pady=PY, sticky=tk.NSEW
 )
 
 #################
@@ -928,7 +934,7 @@ B_encode = tk.Button(
 )
 
 B_encode.pack_configure(
-    expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.LEFT
+    expand=True, fill=tk.BOTH, padx=PX, pady=PY, side=tk.LEFT
 )
 
 Hovertip(
@@ -956,7 +962,7 @@ B_decode = tk.Button(
 )
 
 B_decode.pack_configure(
-    expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.LEFT
+    expand=True, fill=tk.BOTH, padx=PX, pady=PY, side=tk.LEFT
 )
 
 Hovertip(
@@ -982,7 +988,7 @@ F_info.grid_columnconfigure(index=0, weight=0)
 F_info.grid_columnconfigure(index=1, weight=1)
 F_info.grid_columnconfigure(index=2, weight=0)
 F_info.grid_configure(
-    row=0, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW
+    row=0, column=1, padx=PX, pady=PY, sticky=tk.NSEW
 )
 
 #######################
@@ -998,7 +1004,7 @@ tk.Label(
     state=tk.NORMAL,
     takefocus=False,
     text='Opened',
-).grid_configure(row=0, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW)
+).grid_configure(row=0, column=0, padx=PX, pady=PY, sticky=tk.NSEW)
 
 tk.Entry(
     F_info,
@@ -1009,7 +1015,7 @@ tk.Entry(
     state='readonly',
     takefocus=False,
     textvariable=(Var_opened := tk.StringVar()),
-).grid_configure(row=0, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW)
+).grid_configure(row=0, column=1, padx=PX, pady=PY, sticky=tk.NSEW)
 
 B_open = tk.Button(
     F_info,
@@ -1025,7 +1031,7 @@ B_open = tk.Button(
     text='Open',
 )
 
-B_open.grid_configure(row=0, column=2, padx=PADX, pady=PADY, sticky=tk.NSEW)
+B_open.grid_configure(row=0, column=2, padx=PX, pady=PY, sticky=tk.NSEW)
 
 Hovertip(
     B_open,
@@ -1045,7 +1051,7 @@ tk.Label(
     state=tk.NORMAL,
     takefocus=False,
     text='Output',
-).grid_configure(row=1, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW)
+).grid_configure(row=1, column=0, padx=PX, pady=PY, sticky=tk.NSEW)
 
 tk.Entry(
     F_info,
@@ -1056,7 +1062,7 @@ tk.Entry(
     state='readonly',
     takefocus=False,
     textvariable=(Var_output := tk.StringVar()),
-).grid_configure(row=1, column=1, padx=PADX, pady=PADY, sticky=tk.NSEW)
+).grid_configure(row=1, column=1, padx=PX, pady=PY, sticky=tk.NSEW)
 
 B_show = tk.Button(
     F_info,
@@ -1072,7 +1078,7 @@ B_show = tk.Button(
     text='Show',
 )
 
-B_show.grid_configure(row=1, column=2, padx=PADX, pady=PADY, sticky=tk.NSEW)
+B_show.grid_configure(row=1, column=2, padx=PX, pady=PY, sticky=tk.NSEW)
 
 Hovertip(
     B_show,
@@ -1095,7 +1101,7 @@ F_prng = tk.LabelFrame(
 F_prng.pack_propagate(True)
 
 F_prng.grid_configure(
-    row=1, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
+    row=1, column=0, padx=PX, pady=PY, sticky=tk.NSEW
 )
 
 ###################
@@ -1116,7 +1122,7 @@ E_prng = tk.Entry(
 E_prng.bind(V_EVENT_PASTE, lambda e: 'break')
 
 E_prng.pack_configure(
-    expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.TOP
+    expand=True, fill=tk.BOTH, ipady=IY, padx=PX, pady=PY, side=tk.TOP
 )
 
 Hovertip(
@@ -1140,7 +1146,7 @@ F_crypto = tk.LabelFrame(
 F_crypto.pack_propagate(True)
 
 F_crypto.grid_configure(
-    row=2, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
+    row=2, column=0, padx=PX, pady=PY, sticky=tk.NSEW
 )
 
 ####################
@@ -1158,7 +1164,7 @@ X_ciphers = ttk.Combobox(
 X_ciphers.current(1)
 
 X_ciphers.pack_configure(
-    expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.TOP
+    expand=True, fill=tk.BOTH, ipady=IY, padx=PX, pady=PY, side=tk.TOP
 )
 
 Hovertip(
@@ -1191,7 +1197,7 @@ E_key = tk.Entry(
 E_key.bind(V_EVENT_PASTE, lambda e: 'break')
 
 E_key.pack_configure(
-    expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.TOP
+    expand=True, fill=tk.BOTH, ipady=IY, padx=PX, pady=PY, side=tk.TOP
 )
 
 Hovertip(
@@ -1215,7 +1221,7 @@ F_lsb = tk.LabelFrame(
 F_lsb.pack_propagate(True)
 
 F_lsb.grid_configure(
-    row=3, column=0, padx=PADX, pady=PADY, sticky=tk.NSEW
+    row=3, column=0, padx=PX, pady=PY, sticky=tk.NSEW
 )
 
 ##############
@@ -1241,7 +1247,7 @@ for scale in scales:
         takefocus=True,
     )
     scale.pack_configure(
-        expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.LEFT
+        expand=True, fill=tk.BOTH, padx=PX, pady=PY, side=tk.LEFT
     )
 
 ###################
@@ -1249,7 +1255,7 @@ for scale in scales:
 ###################
 mapping = {'used': 0, 'left': 0, 'limit': 0}
 
-template = string.Template('$used+$left=$limit')
+information = string.Template('${used}+${left}=${limit}')
 
 F_book = tk.LabelFrame(
     frame,
@@ -1258,13 +1264,13 @@ F_book = tk.LabelFrame(
     fg=WHITE,
     labelanchor=tk.SE,
     relief=tk.RIDGE,
-    text=template.substitute(mapping),
+    text=information.substitute(mapping),
 )
 
 F_book.pack_propagate(True)
 
 F_book.grid_configure(
-    row=1, column=1, rowspan=3, padx=PADX, pady=PADY, sticky=tk.NSEW
+    row=1, column=1, rowspan=3, padx=PX, pady=PY, sticky=tk.NSEW
 )
 
 ##################
@@ -1278,7 +1284,7 @@ N_stego = ttk.Notebook(
 )
 
 N_stego.pack_configure(
-    expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.TOP
+    expand=True, fill=tk.BOTH, padx=PX, pady=PY, side=tk.TOP
 )
 
 for title in ['encode', 'decode']:
@@ -1295,7 +1301,7 @@ for title in ['encode', 'decode']:
         wrap='char',
     )
     tab.pack_configure(
-        expand=True, fill=tk.BOTH, padx=PADX, pady=PADY, side=tk.TOP
+        expand=True, fill=tk.BOTH, padx=PX, pady=PY, side=tk.TOP
     )
     N_stego.add(
         tab,
