@@ -89,7 +89,7 @@ def openasfile(event: tk.Event) -> Optional[str]:
         file = askopenfilename(
             filetypes=[('Picture Files', EXTENSIONS_PICTURE)],
             initialdir='~',
-            title='Open File',
+            title='Open',
         )
 
         if not file:
@@ -99,7 +99,7 @@ def openasfile(event: tk.Event) -> Optional[str]:
 
         if extension.casefold() not in EXTENSIONS_PICTURE:
             retry = askretrycancel(
-                title='Open File',
+                title='Open',
                 message=f'Not a valid extension: {extension}',
                 detail=f'Valid extensions: {EXTENSIONS_PICTURE_PRETTY}',
             )
@@ -116,12 +116,12 @@ def openasfile(event: tk.Event) -> Optional[str]:
                 UnidentifiedImageError,
                 Image.DecompressionBombError, Image.DecompressionBombWarning,
         ) as err:
-            retry = askretrycancel(title='Open File', message=str(err))
+            retry = askretrycancel(title='Open', message=str(err))
             continue
 
         if mode not in MODES_PICTURE:
             retry = askretrycancel(
-                title='Open File',
+                title='Open',
                 message=f'Mode not supported: {mode}',
                 detail=f'Supported modes: {MODES_PICTURE_PRETTY}',
             )
@@ -129,7 +129,7 @@ def openasfile(event: tk.Event) -> Optional[str]:
 
         if pixel < MIN_PIXEL:
             retry = askretrycancel(
-                title='Open File',
+                title='Open',
                 message=f'Need minimum {MIN_PIXEL} pixels.',
                 detail=f'Provided: {pixel} pixels',
             )
@@ -669,7 +669,7 @@ M_file.add_command(
     command=lambda: root.event_generate(V_EVENT_OPEN_FILE),
     compound=tk.LEFT,
     image=IMAGE_OPEN_FILE,
-    label='Open File',
+    label='Open',
     state=tk.NORMAL,
     underline=3,
 )
