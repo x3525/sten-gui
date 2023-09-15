@@ -658,6 +658,7 @@ IMAGE_OPEN_FILE = tk.PhotoImage(data=IMAGE_DATA_OPEN_FILE)
 IMAGE_ENCODE = tk.PhotoImage(data=IMAGE_DATA_ENCODE)
 IMAGE_DECODE = tk.PhotoImage(data=IMAGE_DATA_DECODE)
 IMAGE_PREFERENCES = tk.PhotoImage(data=IMAGE_DATA_PREFERENCES)
+IMAGE_SHOW = tk.PhotoImage(data=IMAGE_DATA_SHOW)
 
 # Stay away from <Control-Key-o> key sequence!
 root.event_add(V_EVENT_OPEN_FILE, *SEQUENCE_OPEN_FILE)
@@ -1015,7 +1016,7 @@ tk.Entry(
     state='readonly',
     takefocus=False,
     textvariable=(Var_opened := tk.StringVar()),
-).grid_configure(row=0, column=1, padx=PX, pady=PY, sticky=tk.NSEW)
+).grid_configure(row=0, column=1, ipady=IY, padx=PX, pady=PY, sticky=tk.NSEW)
 
 B_open = tk.Button(
     F_info,
@@ -1024,14 +1025,17 @@ B_open = tk.Button(
     bd=B_WIDE,
     bg=WHITE,
     command=lambda: root.event_generate(V_EVENT_OPEN_FILE),
+    compound=tk.LEFT,
     fg=BLACK,
+    image=IMAGE_OPEN_FILE,
     relief=tk.FLAT,
     state=tk.NORMAL,
     takefocus=True,
-    text='Open',
 )
 
-B_open.grid_configure(row=0, column=2, padx=PX, pady=PY, sticky=tk.NSEW)
+B_open.grid_configure(
+    row=0, column=2, ipadx=IX, padx=PX, pady=PY, sticky=tk.NSEW
+)
 
 Hovertip(
     B_open,
@@ -1062,7 +1066,7 @@ tk.Entry(
     state='readonly',
     takefocus=False,
     textvariable=(Var_output := tk.StringVar()),
-).grid_configure(row=1, column=1, padx=PX, pady=PY, sticky=tk.NSEW)
+).grid_configure(row=1, column=1, ipady=IY, padx=PX, pady=PY, sticky=tk.NSEW)
 
 B_show = tk.Button(
     F_info,
@@ -1071,14 +1075,17 @@ B_show = tk.Button(
     bd=B_WIDE,
     bg=WHITE,
     command=show,
+    compound=tk.LEFT,
     fg=BLACK,
+    image=IMAGE_SHOW,
     relief=tk.FLAT,
     state=tk.DISABLED,
     takefocus=True,
-    text='Show',
 )
 
-B_show.grid_configure(row=1, column=2, padx=PX, pady=PY, sticky=tk.NSEW)
+B_show.grid_configure(
+    row=1, column=2, ipadx=IX, padx=PX, pady=PY, sticky=tk.NSEW
+)
 
 Hovertip(
     B_show,
