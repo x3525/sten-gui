@@ -89,7 +89,7 @@ def openasfile(event: tk.Event) -> Optional[str]:
         file = askopenfilename(
             filetypes=[('Picture Files', EXTENSIONS_PICTURE)],
             initialdir='~',
-            title='Open',
+            title='Open File',
         )
 
         if not file:
@@ -99,7 +99,7 @@ def openasfile(event: tk.Event) -> Optional[str]:
 
         if extension.casefold() not in EXTENSIONS_PICTURE:
             retry = askretrycancel(
-                title='Open',
+                title='Open File',
                 message=f'Not a valid extension: {extension}',
                 detail=f'Valid extensions: {EXTENSIONS_PICTURE_PRETTY}',
             )
@@ -116,12 +116,12 @@ def openasfile(event: tk.Event) -> Optional[str]:
                 UnidentifiedImageError,
                 Image.DecompressionBombError, Image.DecompressionBombWarning,
         ) as err:
-            retry = askretrycancel(title='Open', message=str(err))
+            retry = askretrycancel(title='Open File', message=str(err))
             continue
 
         if mode not in MODES_PICTURE:
             retry = askretrycancel(
-                title='Open',
+                title='Open File',
                 message=f'Mode not supported: {mode}',
                 detail=f'Supported modes: {MODES_PICTURE_PRETTY}',
             )
@@ -129,7 +129,7 @@ def openasfile(event: tk.Event) -> Optional[str]:
 
         if pixel < MIN_PIXEL:
             retry = askretrycancel(
-                title='Open',
+                title='Open File',
                 message=f'Need minimum {MIN_PIXEL} pixels.',
                 detail=f'Provided: {pixel} pixels',
             )
@@ -156,6 +156,7 @@ def openasfile(event: tk.Event) -> Optional[str]:
         Var_opened.set(file)
         Var_output.set('')
 
+        M_file.entryconfigure(MENU_ITEM_INDEX_SHOW, state=tk.DISABLED)
         B_show['state'] = tk.DISABLED
 
         return None
@@ -271,6 +272,7 @@ def encode(event: tk.Event):
 
     Var_output.set(output)
 
+    M_file.entryconfigure(MENU_ITEM_INDEX_SHOW, state=tk.NORMAL)
     B_show['state'] = tk.NORMAL
 
     showinfo(title='Encode', message='File is encoded!')
@@ -338,6 +340,7 @@ def decode(event: tk.Event):
 
     Var_output.set('')
 
+    M_file.entryconfigure(MENU_ITEM_INDEX_SHOW, state=tk.DISABLED)
     B_show['state'] = tk.DISABLED
 
     showinfo(title='Decode', message='File is decoded!')
@@ -649,16 +652,17 @@ M_file = tk.Menu(menu, tearoff=False)
 
 menu.add_cascade(label='File', menu=M_file, state=tk.NORMAL, underline=0)
 
-MENU_ITEM_INDEX_ENCODE = 2
-MENU_ITEM_INDEX_DECODE = 3
-MENU_ITEM_INDEX_PREFERENCES = 5
-MENU_ITEM_INDEX_IMAGE_PROPERTIES = 6
+MENU_ITEM_INDEX_SHOW = 1
+MENU_ITEM_INDEX_ENCODE = 3
+MENU_ITEM_INDEX_DECODE = 4
+MENU_ITEM_INDEX_PREFERENCES = 6
+MENU_ITEM_INDEX_IMAGE_PROPERTIES = 7
 
 IMAGE_OPEN_FILE = tk.PhotoImage(data=IMAGE_DATA_OPEN_FILE)
+IMAGE_SHOW = tk.PhotoImage(data=IMAGE_DATA_SHOW)
 IMAGE_ENCODE = tk.PhotoImage(data=IMAGE_DATA_ENCODE)
 IMAGE_DECODE = tk.PhotoImage(data=IMAGE_DATA_DECODE)
 IMAGE_PREFERENCES = tk.PhotoImage(data=IMAGE_DATA_PREFERENCES)
-IMAGE_SHOW = tk.PhotoImage(data=IMAGE_DATA_SHOW)
 
 # Stay away from <Control-Key-o> key sequence!
 root.event_add(V_EVENT_OPEN_FILE, *SEQUENCE_OPEN_FILE)
@@ -670,7 +674,7 @@ M_file.add_command(
     command=lambda: root.event_generate(V_EVENT_OPEN_FILE),
     compound=tk.LEFT,
     image=IMAGE_OPEN_FILE,
-    label='Open',
+    label='Open File',
     state=tk.NORMAL,
     underline=3,
 )
@@ -678,6 +682,15 @@ M_file.add_command(
 root.bind(V_EVENT_OPEN_FILE, openasfile)
 root.bind(V_EVENT_OPEN_FILE, activate, add='+')
 root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
+
+M_file.add_command(
+    command=show,
+    compound=tk.LEFT,
+    image=IMAGE_SHOW,
+    label='Show',
+    state=tk.DISABLED,
+    underline=0,
+)
 
 M_file.add_separator()
 
