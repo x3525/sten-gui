@@ -1345,7 +1345,7 @@ cnf = collections.defaultdict(
 ######################
 # ... Scheduling ... #
 ######################
-def ___show___():
+def ___scheduling___show___():
     """..."""
     output = Var_output.get()
 
@@ -1360,11 +1360,11 @@ def ___show___():
         M_file.entryconfigure(MENU_ITEM_INDEX_SHOW, state=state)
         B_show['state'] = state
 
-    root.after(AFTER_MS_SHOW, ___show___)
+    root.after(AFTER_MS_SHOW, ___scheduling___show___)
 
 
 schedules = {
-    ___show___: (AFTER_MS_SHOW := 250),
+    ___scheduling___show___: (AFTER_MS_SHOW := 250),
 }
 
 for func, ms in schedules.items():
