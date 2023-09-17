@@ -164,6 +164,14 @@ def openasfile(event: tk.Event) -> Optional[str]:
     return 'break'  # No more event processing for "V_EVENT_OPEN_FILE"
 
 
+def show():
+    """Show a previously created stego-object."""
+    try:
+        os.startfile(Var_output.get(), operation='open')  # nosec
+    except OSError as err:
+        showerror(title='Show', message=str(err))
+
+
 def encode(event: tk.Event):
     """Create a stego-object."""
     name, key = X_ciphers.get(), E_key.get()
@@ -344,14 +352,6 @@ def decode(event: tk.Event):
     B_show['state'] = tk.DISABLED
 
     showinfo(title='Decode', message='File is decoded!')
-
-
-def show():
-    """Show a previously created stego-object."""
-    try:
-        os.startfile(Var_output.get(), operation='open')  # nosec
-    except OSError as err:
-        showerror(title='Show', message=str(err))
 
 
 def preferences():
@@ -1340,6 +1340,35 @@ cnf = collections.defaultdict(
     lambda: tk.BooleanVar(value=False),
     {key: tk.BooleanVar(value=value) for key, value in js.load().items()}
 )
+
+
+######################
+# ... Scheduling ... #
+######################
+def ___show___():
+    """..."""
+    output = Var_output.get()
+
+    if os.path.exists(output):
+        state = tk.NORMAL
+    else:
+        state = tk.DISABLED
+
+    if M_file.entrycget(MENU_ITEM_INDEX_SHOW, 'state') == state:
+        pass  # For the performance reasons...
+    else:
+        M_file.entryconfigure(MENU_ITEM_INDEX_SHOW, state=state)
+        B_show['state'] = state
+
+    root.after(AFTER_MS_SHOW, ___show___)
+
+
+schedules = {
+    ___show___: (AFTER_MS_SHOW := 250),
+}
+
+for func, ms in schedules.items():
+    root.after(ms, func)
 
 if __name__ == '__main__':
     root.mainloop()
