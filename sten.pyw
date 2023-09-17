@@ -1358,7 +1358,6 @@ cnf = collections.defaultdict(
 # ... Scheduling ... #
 ######################
 def ___scheduling___show___():
-    """..."""
     output = Var_output.get()
 
     if os.path.exists(output):
