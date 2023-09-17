@@ -156,7 +156,6 @@ def openasfile(event: tk.Event) -> Optional[str]:
         Var_opened.set(file)
         Var_output.set('')
 
-        M_file.entryconfigure(MENU_ITEM_INDEX_SHOW, state=tk.DISABLED)
         B_show['state'] = tk.DISABLED
 
         return None
@@ -280,7 +279,6 @@ def encode(event: tk.Event):
 
     Var_output.set(output)
 
-    M_file.entryconfigure(MENU_ITEM_INDEX_SHOW, state=tk.NORMAL)
     B_show['state'] = tk.NORMAL
 
     showinfo(title='Encode', message='File is encoded!')
@@ -348,7 +346,6 @@ def decode(event: tk.Event):
 
     Var_output.set('')
 
-    M_file.entryconfigure(MENU_ITEM_INDEX_SHOW, state=tk.DISABLED)
     B_show['state'] = tk.DISABLED
 
     showinfo(title='Decode', message='File is decoded!')
@@ -652,11 +649,10 @@ M_file = tk.Menu(menu, tearoff=False)
 
 menu.add_cascade(label='File', menu=M_file, state=tk.NORMAL, underline=0)
 
-MENU_ITEM_INDEX_SHOW = 2
-MENU_ITEM_INDEX_ENCODE = 4
-MENU_ITEM_INDEX_DECODE = 5
-MENU_ITEM_INDEX_PREFERENCES = 7
-MENU_ITEM_INDEX_IMAGE_PROPERTIES = 8
+MENU_ITEM_INDEX_ENCODE = 2
+MENU_ITEM_INDEX_DECODE = 3
+MENU_ITEM_INDEX_PREFERENCES = 5
+MENU_ITEM_INDEX_IMAGE_PROPERTIES = 6
 
 IMAGE_OPEN_FILE = tk.PhotoImage(data=IMAGE_DATA_OPEN_FILE)
 IMAGE_SHOW = tk.PhotoImage(data=IMAGE_DATA_SHOW)
@@ -682,17 +678,6 @@ M_file.add_command(
 root.bind(V_EVENT_OPEN_FILE, openasfile)
 root.bind(V_EVENT_OPEN_FILE, activate, add='+')
 root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
-
-M_file.add_separator()
-
-M_file.add_command(
-    command=show,
-    compound=tk.LEFT,
-    image=IMAGE_SHOW,
-    label='Show Object',
-    state=tk.DISABLED,
-    underline=0,
-)
 
 M_file.add_separator()
 
@@ -1357,29 +1342,15 @@ cnf = collections.defaultdict(
 ######################
 # ... Scheduling ... #
 ######################
-def ___scheduling___show___():
+def schedule(ms: int):
     output = Var_output.get()
 
-    if os.path.exists(output):
-        state = tk.NORMAL
-    else:
-        state = tk.DISABLED
+    B_show['state'] = tk.NORMAL if os.path.exists(output) else tk.DISABLED
 
-    if M_file.entrycget(MENU_ITEM_INDEX_SHOW, 'state') == state:
-        pass  # For the performance reasons...
-    else:
-        M_file.entryconfigure(MENU_ITEM_INDEX_SHOW, state=state)
-        B_show['state'] = state
-
-    root.after(AFTER_MS_SHOW, ___scheduling___show___)
+    root.after(ms, schedule, ms)
 
 
-schedules = {
-    ___scheduling___show___: (AFTER_MS_SHOW := 250),
-}
-
-for func, ms in schedules.items():
-    root.after(ms, func)
+schedule(250)
 
 if __name__ == '__main__':
     root.mainloop()
