@@ -179,7 +179,7 @@ def encode(event: tk.Event):
     if (not key) and name:
         return
 
-    message = notebook['encode'].get('1.0', tk.END)[:-1]
+    message = notebook['message'].get('1.0', tk.END)[:-1]
 
     if not message:
         return
@@ -339,12 +339,12 @@ def decode(event: tk.Event):
     cipher.txt = message
     message = cipher.decrypt()
 
-    notebook['decode']['state'] = tk.NORMAL
-    notebook['decode'].delete('1.0', tk.END)
-    notebook['decode'].insert('1.0', message)
-    notebook['decode']['state'] = tk.DISABLED
+    notebook['decoded']['state'] = tk.NORMAL
+    notebook['decoded'].delete('1.0', tk.END)
+    notebook['decoded'].insert('1.0', message)
+    notebook['decoded']['state'] = tk.DISABLED
 
-    N_stego.select(notebook['decode'])
+    N_stego.select(notebook['decoded'])
 
     Var_output.set('')
 
@@ -407,7 +407,7 @@ def manipulate(v_event: str):
 
     if not widget:
         return
-    if widget is not notebook['encode']:
+    if widget is not notebook['message']:
         return
 
     widget.event_generate(v_event)
@@ -461,16 +461,16 @@ def activate(event: tk.Event):
     E_key['state'] = tk.NORMAL
     E_key.bind('<KeyRelease>', refresh)
 
-    N_stego.tab(notebook['encode'], state=tk.NORMAL)
-    N_stego.tab(notebook['decode'], state=tk.NORMAL)
+    N_stego.tab(notebook['message'], state=tk.NORMAL)
+    N_stego.tab(notebook['decoded'], state=tk.NORMAL)
 
-    N_stego.select(notebook['encode'])
+    N_stego.select(notebook['message'])
 
-    notebook['encode']['state'] = tk.NORMAL
-    notebook['encode']['bg'] = WHITE
-    notebook['encode'].bind('<ButtonPress-3>', focusset)
-    notebook['encode'].bind('<ButtonRelease-3>', popup)
-    notebook['encode'].bind('<KeyRelease>', refresh)
+    notebook['message']['state'] = tk.NORMAL
+    notebook['message']['bg'] = WHITE
+    notebook['message'].bind('<ButtonPress-3>', focusset)
+    notebook['message'].bind('<ButtonRelease-3>', popup)
+    notebook['message'].bind('<KeyRelease>', refresh)
 
     for scl in scales:
         scl['state'] = tk.NORMAL
@@ -494,7 +494,7 @@ def refresh(event: tk.Event):
         E_key.delete('0', tk.END)
         E_key['vcmd'] = Name_Vcmd[ciphername]  # Update validate command
 
-    message = notebook['encode'].get('1.0', tk.END)[:-1]
+    message = notebook['message'].get('1.0', tk.END)[:-1]
 
     key = E_key.get()
 
@@ -540,10 +540,10 @@ def refresh(event: tk.Event):
 
     if len(message) > limit:
         # Delete excess message
-        notebook['encode'].delete('1.0', tk.END)
-        notebook['encode'].insert('1.0', message[:limit])
+        notebook['message'].delete('1.0', tk.END)
+        notebook['message'].insert('1.0', message[:limit])
 
-    used = len(notebook['encode'].get('1.0', tk.END)[:-1])
+    used = len(notebook['message'].get('1.0', tk.END)[:-1])
 
     left = limit - used
 
@@ -552,9 +552,9 @@ def refresh(event: tk.Event):
     if event.char in ['']:
         pass
     else:
-        if (widget is notebook['encode']) or (left == 0):
+        if (widget is notebook['message']) or (left == 0):
             # Scroll such that the character at "INSERT" index is visible
-            notebook['encode'].see(notebook['encode'].index(tk.INSERT))
+            notebook['message'].see(notebook['message'].index(tk.INSERT))
 
     Globs.band_lsb = tuple(band_lsb.items())
 
@@ -1319,7 +1319,7 @@ N_stego.pack_configure(
     expand=True, fill=tk.BOTH, padx=PX, pady=PY, side=tk.TOP
 )
 
-for title in ['encode', 'decode']:
+for title in ['message', 'decoded']:
     tab = ScrolledText(
         N_stego,
         bd=B_NONE,
