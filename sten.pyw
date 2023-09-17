@@ -169,7 +169,7 @@ def show():
     try:
         os.startfile(Var_output.get(), operation='open')  # nosec
     except OSError as err:
-        showerror(title='Show', message=str(err))
+        showerror(title='Show Object', message=str(err))
 
 
 def encode(event: tk.Event):
@@ -354,7 +354,7 @@ def decode(event: tk.Event):
     showinfo(title='Decode', message='File is decoded!')
 
 
-def preferences():
+def preferences(event: tk.Event):
     """Show preferences."""
     toplevel = tk.Toplevel(root)
 
@@ -372,7 +372,7 @@ def preferences():
         toplevel,
         anchor=tk.W,
         text='Confirm before exiting the program',
-        variable=cnf['confirm'],
+        variable=cnf['confirmExit'],
     ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
     tk.Checkbutton(
         toplevel,
@@ -389,7 +389,7 @@ def properties():
 
 def close():
     """Destroy the main window."""
-    if cnf['confirm'].get():
+    if cnf['confirmExit'].get():
         if not askokcancel(
                 title='Confirm Exit',
                 message='Are you sure you want to exit?',
@@ -570,9 +570,9 @@ def exception(*msg) -> NoReturn:
 
 sys.excepthook = exception
 
-####################
-# Windows Specific #
-####################
+#######################
+# Windows OS Specific #
+#######################
 PROCESS_PER_MONITOR_DPI_AWARE = 2
 PROCESS_DPI_AWARENESS = PROCESS_PER_MONITOR_DPI_AWARE
 
@@ -652,11 +652,11 @@ M_file = tk.Menu(menu, tearoff=False)
 
 menu.add_cascade(label='File', menu=M_file, state=tk.NORMAL, underline=0)
 
-MENU_ITEM_INDEX_SHOW = 1
-MENU_ITEM_INDEX_ENCODE = 3
-MENU_ITEM_INDEX_DECODE = 4
-MENU_ITEM_INDEX_PREFERENCES = 6
-MENU_ITEM_INDEX_IMAGE_PROPERTIES = 7
+MENU_ITEM_INDEX_SHOW = 2
+MENU_ITEM_INDEX_ENCODE = 4
+MENU_ITEM_INDEX_DECODE = 5
+MENU_ITEM_INDEX_PREFERENCES = 7
+MENU_ITEM_INDEX_IMAGE_PROPERTIES = 8
 
 IMAGE_OPEN_FILE = tk.PhotoImage(data=IMAGE_DATA_OPEN_FILE)
 IMAGE_SHOW = tk.PhotoImage(data=IMAGE_DATA_SHOW)
@@ -664,10 +664,10 @@ IMAGE_ENCODE = tk.PhotoImage(data=IMAGE_DATA_ENCODE)
 IMAGE_DECODE = tk.PhotoImage(data=IMAGE_DATA_DECODE)
 IMAGE_PREFERENCES = tk.PhotoImage(data=IMAGE_DATA_PREFERENCES)
 
-# Stay away from <Control-Key-o> key sequence!
 root.event_add(V_EVENT_OPEN_FILE, *SEQUENCE_OPEN_FILE)
 root.event_add(V_EVENT_ENCODE, *SEQUENCE_ENCODE)
 root.event_add(V_EVENT_DECODE, *SEQUENCE_DECODE)
+root.event_add(V_EVENT_PREFERENCES, *SEQUENCE_PREFERENCES)
 
 M_file.add_command(
     accelerator=SHORTCUT_OPEN_FILE,
@@ -683,11 +683,13 @@ root.bind(V_EVENT_OPEN_FILE, openasfile)
 root.bind(V_EVENT_OPEN_FILE, activate, add='+')
 root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
 
+M_file.add_separator()
+
 M_file.add_command(
     command=show,
     compound=tk.LEFT,
     image=IMAGE_SHOW,
-    label='Show',
+    label='Show Object',
     state=tk.DISABLED,
     underline=0,
 )
@@ -703,6 +705,7 @@ M_file.add_command(
     state=tk.DISABLED,
     underline=0,
 )
+
 M_file.add_command(
     accelerator=SHORTCUT_DECODE,
     command=lambda: root.event_generate(V_EVENT_DECODE),
@@ -716,13 +719,17 @@ M_file.add_command(
 M_file.add_separator()
 
 M_file.add_command(
-    command=preferences,
+    accelerator=SHORTCUT_PREFERENCES,
+    command=lambda: root.event_generate(V_EVENT_PREFERENCES),
     compound=tk.LEFT,
     image=IMAGE_PREFERENCES,
     label='Preferences',
     state=tk.NORMAL,
     underline=0,
 )
+
+root.bind(V_EVENT_PREFERENCES, preferences)
+
 M_file.add_command(
     command=properties,
     label='Image Properties',
@@ -778,6 +785,7 @@ M_edit.add_command(
     state=tk.NORMAL,
     underline=0,
 )
+
 M_edit.add_command(
     accelerator=SHORTCUT_REDO,
     command=lambda: manipulate(V_EVENT_REDO),
@@ -799,6 +807,7 @@ M_edit.add_command(
     state=tk.NORMAL,
     underline=2,
 )
+
 M_edit.add_command(
     accelerator=SHORTCUT_COPY,
     command=lambda: manipulate(V_EVENT_COPY),
@@ -808,6 +817,7 @@ M_edit.add_command(
     state=tk.NORMAL,
     underline=0,
 )
+
 M_edit.add_command(
     accelerator=SHORTCUT_PASTE,
     command=lambda: manipulate(V_EVENT_PASTE),
@@ -845,6 +855,7 @@ M_window.add_checkbutton(
     state=tk.NORMAL,
     underline=7,
 )
+
 M_window.add_checkbutton(
     command=transparent,
     label='Transparent',
@@ -881,6 +892,7 @@ M_help.add_command(
     state=tk.NORMAL,
     underline=0,
 )
+
 M_help.add_command(
     command=lambda: showinfo(title='About', message=__doc__),
     compound=tk.LEFT,
