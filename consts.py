@@ -85,6 +85,12 @@ SHORTCUT_REDO = 'Ctrl+Y'
 SHORTCUT_SELECT_ALL = 'Ctrl+A'
 SHORTCUT_UNDO = 'Ctrl+Z'
 
+##########
+# Ctypes #
+##########
+APP_ID = 'serhat.sten'
+PROCESS_DPI_AWARENESS = 2
+
 #################
 # Miscellaneous #
 #################

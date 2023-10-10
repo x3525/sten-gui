@@ -19,28 +19,22 @@ along with Sten.  If not, see <https://www.gnu.org/licenses/>.
 import collections
 import ctypes
 import dataclasses
-import logging
+import logging.config
 import math
 import os
 import random
 import string
 import sys
 import tkinter as tk
+import tkinter.filedialog as fd
+import tkinter.messagebox as mb
+import traceback
 import warnings
 import webbrowser
 from contextlib import suppress
-from idlelib.tooltip import Hovertip  # type: ignore
 from itertools import compress, product
 from tkinter import ttk
-from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.font import Font
-from tkinter.messagebox import (
-    askokcancel,
-    askretrycancel,
-    showerror,
-    showinfo,
-    showwarning,
-)
 from tkinter.scrolledtext import ScrolledText
 from typing import NoReturn, Optional
 
@@ -48,9 +42,9 @@ import numpy as np
 from PIL import Image, UnidentifiedImageError
 from numpy.typing import NDArray
 
-import crypto
 from config import Json
 from consts import *
+from crypto import Hill, ciphers
 from error import CryptoExceptionGroup
 from icons import *
 from utils import nonascii, splitext
@@ -60,7 +54,18 @@ warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 
 @dataclasses.dataclass
-class Globs:
+class Path:
+    """File paths."""
+
+    __folder__ = os.path.dirname(__file__)
+
+    config: str = os.path.join(__folder__, 'sten.json')
+    log: str = os.path.join(__folder__, 'sten.log').replace(os.sep, '/')
+    logconfig: str = os.path.join(__folder__, 'sten.log.conf')
+
+
+@dataclasses.dataclass
+class Glob:
     """Global "control" variables for the internal module."""
 
     band_lsb: tuple[tuple[int, int], ...]
@@ -79,14 +84,14 @@ class Picture:
     filename: str
     extension: str
 
-    properties: tuple[str, ...]
+    properties: str
 
 
 def openasfile(event: tk.Event) -> Optional[str]:
     """Open a picture file."""
     retry = True
     while retry:
-        file = askopenfilename(
+        file = fd.askopenfilename(
             filetypes=[('Picture Files', EXTENSIONS_PICTURE)],
             initialdir='~',
             title='Open File',
@@ -98,7 +103,7 @@ def openasfile(event: tk.Event) -> Optional[str]:
         filename, extension = splitext(file)
 
         if extension.casefold() not in EXTENSIONS_PICTURE:
-            retry = askretrycancel(
+            retry = mb.askretrycancel(
                 title='Open File',
                 message=f'Not a valid extension: {extension}',
                 detail=f'Valid extensions: {EXTENSIONS_PICTURE_PRETTY}',
@@ -116,11 +121,11 @@ def openasfile(event: tk.Event) -> Optional[str]:
                 UnidentifiedImageError,
                 Image.DecompressionBombError, Image.DecompressionBombWarning,
         ) as err:
-            retry = askretrycancel(title='Open File', message=str(err))
+            retry = mb.askretrycancel(title='Open File', message=str(err))
             continue
 
         if mode not in MODES_PICTURE:
-            retry = askretrycancel(
+            retry = mb.askretrycancel(
                 title='Open File',
                 message=f'Mode not supported: {mode}',
                 detail=f'Supported modes: {MODES_PICTURE_PRETTY}',
@@ -128,7 +133,7 @@ def openasfile(event: tk.Event) -> Optional[str]:
             continue
 
         if pixel < MIN_PIXEL:
-            retry = askretrycancel(
+            retry = mb.askretrycancel(
                 title='Open File',
                 message=f'Need minimum {MIN_PIXEL} pixels.',
                 detail=f'Provided: {pixel} pixels',
@@ -146,11 +151,13 @@ def openasfile(event: tk.Event) -> Optional[str]:
 
         capacity = (Picture.pixel * RGB) - len(DELIMITER)
 
-        Picture.properties = (
-            f'Capacity: {capacity} characters',
-            f'Width: {width} pixels',
-            f'Height: {height} pixels',
-            f'Bit depth: {B * len(Picture.mode)} ({Picture.mode})',
+        Picture.properties = '\n'.join(
+            [
+                f'Capacity: {capacity} characters',
+                f'Width: {width} pixels',
+                f'Height: {height} pixels',
+                f'Bit depth: {B * len(Picture.mode)} ({Picture.mode})',
+            ]
         )
 
         Var_opened.set(file)
@@ -168,7 +175,7 @@ def show():
     try:
         os.startfile(Var_output.get(), operation='open')  # nosec
     except OSError as err:
-        showerror(title='Show Object', message=str(err))
+        mb.showerror(title='Show Object', message=str(err))
 
 
 def encode(event: tk.Event):
@@ -184,7 +191,7 @@ def encode(event: tk.Event):
         return
 
     if char := nonascii(message):
-        showerror(
+        mb.showerror(
             title='Encode',
             message='Message contains a non-ASCII character.',
             detail=f'Character: {char}',
@@ -192,24 +199,24 @@ def encode(event: tk.Event):
         return
 
     try:
-        cipher = crypto.ciphers[name](key, message)
+        cipher = ciphers[name](key, message)
     except CryptoExceptionGroup as err:
-        showerror(title='Encode', message=str(err))
+        mb.showerror(title='Encode', message=str(err))
         return
 
     message = cipher.encrypt()
 
     # Check the character limit, for Hill cipher :/
-    if (cipher.name == crypto.Hill.name) and (len(message) > Globs.limit):
-        showerror(
+    if (cipher.name == Hill.name) and (len(message) > Glob.limit):
+        mb.showerror(
             title='Encode',
             message='Cipher text length exceeds the character limit.',
-            detail=f'Limit: {Globs.limit}',
+            detail=f'Limit: {Glob.limit}',
         )
         return
 
     if DELIMITER in message:
-        if not askokcancel(
+        if not mb.askokcancel(
                 title='Encode',
                 message='Some data will be lost!',
                 detail='Message will contain the delimiter...',
@@ -217,7 +224,7 @@ def encode(event: tk.Event):
         ):
             return
 
-    output = asksaveasfilename(
+    output = fd.asksaveasfilename(
         confirmoverwrite=True,
         defaultextension=Picture.extension,
         filetypes=[('Picture Files', EXTENSIONS_PICTURE)],
@@ -231,7 +238,7 @@ def encode(event: tk.Event):
     _, extension = splitext(output)
 
     if extension.casefold() not in EXTENSIONS_PICTURE:
-        showerror(
+        mb.showerror(
             title='Save As',
             message=f'Not a valid extension: {extension}',
             detail=f'Valid extensions: {EXTENSIONS_PICTURE_PRETTY}',
@@ -255,7 +262,7 @@ def encode(event: tk.Event):
 
     i = 0
 
-    for pix, (band, lsb) in product(pixels, Globs.band_lsb):
+    for pix, (band, lsb) in product(pixels, Glob.band_lsb):
         if i >= bits_length:
             break
 
@@ -274,14 +281,14 @@ def encode(event: tk.Event):
     try:
         Image.fromarray(array).save(output)
     except OSError as err:
-        showerror(title='Save As', message=str(err))
+        mb.showerror(title='Save As', message=str(err))
         return
 
     Var_output.set(output)
 
     B_show['state'] = tk.NORMAL
 
-    showinfo(title='Encode', message='File is encoded!')
+    mb.showinfo(title='Encode', message='File is encoded!')
 
 
 def decode(event: tk.Event):
@@ -292,9 +299,9 @@ def decode(event: tk.Event):
         return
 
     try:
-        cipher = crypto.ciphers[name](key)
+        cipher = ciphers[name](key)
     except CryptoExceptionGroup as err:
-        showerror(title='Decode', message=str(err))
+        mb.showerror(title='Decode', message=str(err))
         return
 
     pixels = list(range(Picture.pixel))
@@ -303,7 +310,7 @@ def decode(event: tk.Event):
         random.seed(seed)
         random.shuffle(pixels)
 
-    for band_lsb in possibilities if cnf['brute'].get() else (Globs.band_lsb,):
+    for band_lsb in possibilities if cnf['brute'].get() else (Glob.band_lsb,):
         bits, message = '', ''
 
         for pix, (band, lsb) in product(pixels, band_lsb):
@@ -321,11 +328,11 @@ def decode(event: tk.Event):
         if message.endswith(DELIMITER):
             break
     else:
-        showwarning(title='Decode', message='No hidden message found.')
+        mb.showwarning(title='Decode', message='No hidden message found.')
         return
 
     if nonascii(message):
-        showerror(
+        mb.showerror(
             title='Decode',
             message='Message contains a non-ASCII character.',
             detail='Are you sure this message was created using Sten?',
@@ -348,7 +355,7 @@ def decode(event: tk.Event):
 
     B_show['state'] = tk.DISABLED
 
-    showinfo(title='Decode', message='File is decoded!')
+    mb.showinfo(title='Decode', message='File is decoded!')
 
 
 def preferences(event: tk.Event):
@@ -381,13 +388,13 @@ def preferences(event: tk.Event):
 
 def properties():
     """Show image properties."""
-    showinfo(title='Image Properties', message='\n'.join(Picture.properties))
+    mb.showinfo(title='Image Properties', message=Picture.properties)
 
 
 def close():
     """Destroy the main window."""
     if cnf['confirmExit'].get():
-        if not askokcancel(
+        if not mb.askokcancel(
                 title='Confirm Exit',
                 message='Are you sure you want to exit?',
         ):
@@ -553,15 +560,15 @@ def refresh(event: tk.Event):
             # Scroll such that the character at "INSERT" index is visible
             notebook['message'].see(notebook['message'].index(tk.INSERT))
 
-    Globs.band_lsb = tuple(band_lsb.items())
+    Glob.band_lsb = tuple(band_lsb.items())
 
-    Globs.limit = limit
+    Glob.limit = limit
 
 
 def exception(*msg) -> NoReturn:
     """Report callback exception."""
-    logging.critical(msg, exc_info=(msg[0], msg[1], msg[2]))
-    showerror(title='Fatal Error', message=str(msg))
+    logger.critical('\n%s', ''.join(traceback.format_exception(*msg)))
+    mb.showerror(title='Fatal Error', message=str(msg))
     os._exit(-1)
 
 
@@ -570,21 +577,16 @@ sys.excepthook = exception
 #######################
 # Windows OS Specific #
 #######################
-PROCESS_PER_MONITOR_DPI_AWARE = 2
-PROCESS_DPI_AWARENESS = PROCESS_PER_MONITOR_DPI_AWARE
-
 with suppress(AttributeError):
     ctypes.windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(' ')
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
 
 ###################
 # /!\ Logging /!\ #
 ###################
 with suppress(OSError):
-    logging.basicConfig(
-        filename=os.path.join(os.path.dirname(__file__), 'sten.log'),
-        format='\n%(asctime)s',
-    )
+    logging.config.fileConfig(Path.logconfig, defaults={'logfile': Path.log})
+    logger = logging.getLogger('root')
 
 ########
 # ROOT #
@@ -879,7 +881,7 @@ M_help.add_command(
 )
 
 M_help.add_command(
-    command=lambda: showinfo(title='About', message=__doc__),
+    command=lambda: mb.showinfo(title='About', message=__doc__),
     compound=tk.LEFT,
     image=IMAGE_ABOUT,
     label='About',
@@ -948,11 +950,6 @@ B_encode.pack_configure(
     expand=True, fill=tk.BOTH, padx=PX, pady=PY, side=tk.LEFT
 )
 
-Hovertip(
-    B_encode,
-    text=f'[{SHORTCUT_ENCODE}]\n{encode.__doc__}',
-)
-
 #################
 # Decode Button #
 #################
@@ -974,11 +971,6 @@ B_decode = tk.Button(
 
 B_decode.pack_configure(
     expand=True, fill=tk.BOTH, padx=PX, pady=PY, side=tk.LEFT
-)
-
-Hovertip(
-    B_decode,
-    text=f'[{SHORTCUT_DECODE}]\n{decode.__doc__}',
 )
 
 ###############
@@ -1047,11 +1039,6 @@ B_open.grid_configure(
     row=0, column=2, ipadx=IX, padx=PX, pady=PY, sticky=tk.NSEW
 )
 
-Hovertip(
-    B_open,
-    text=f'[{SHORTCUT_OPEN_FILE}]\n{openasfile.__doc__}',
-)
-
 #######################
 # Output File Section #
 #######################
@@ -1097,11 +1084,6 @@ B_show.grid_configure(
     row=1, column=2, ipadx=IX, padx=PX, pady=PY, sticky=tk.NSEW
 )
 
-Hovertip(
-    B_show,
-    text=show.__doc__,
-)
-
 ###############
 # Frame: PRNG #
 ###############
@@ -1142,11 +1124,6 @@ E_prng.pack_configure(
     expand=True, fill=tk.BOTH, ipady=IY, padx=PX, pady=PY, side=tk.TOP
 )
 
-Hovertip(
-    E_prng,
-    text='Pseudo-random number generator seed.',
-)
-
 #################
 # Frame: Crypto #
 #################
@@ -1175,7 +1152,7 @@ X_ciphers = ttk.Combobox(
     foreground=BLACK,
     state=tk.DISABLED,
     takefocus=True,
-    values=tuple(crypto.ciphers),
+    values=tuple(ciphers),
 )
 
 X_ciphers.current(1)
@@ -1184,17 +1161,12 @@ X_ciphers.pack_configure(
     expand=True, fill=tk.BOTH, ipady=IY, padx=PX, pady=PY, side=tk.TOP
 )
 
-Hovertip(
-    X_ciphers,
-    text=crypto.__doc__,
-)
-
 ####################
 # Cipher Key Entry #
 ####################
 Name_Vcmd = {
     name: (root.register(cipher.validate), *cipher.code)
-    for name, cipher in crypto.ciphers.items()
+    for name, cipher in ciphers.items()
 }
 
 E_key = tk.Entry(
@@ -1215,11 +1187,6 @@ E_key.bind(V_EVENT_PASTE, lambda e: 'break')
 
 E_key.pack_configure(
     expand=True, fill=tk.BOTH, ipady=IY, padx=PX, pady=PY, side=tk.TOP
-)
-
-Hovertip(
-    E_key,
-    text='Cipher key.',
 )
 
 ##############
@@ -1331,7 +1298,7 @@ for title in ['message', 'decoded']:
 #################
 # Configuration #
 #################
-js = Json(os.path.join(os.path.dirname(__file__), 'sten.json'))
+js = Json(Path.config)
 
 cnf = collections.defaultdict(
     lambda: tk.BooleanVar(value=False),
