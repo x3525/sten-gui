@@ -30,9 +30,6 @@ sten = 'sten.__main__:main'
 [tool.setuptools]
 zip-safe = false
 
-[tool.setuptools.package-data]
-sten = ['*.conf']
-
 [tool.setuptools.dynamic]
 dependencies = {file = ['requirements.txt']}
 version = {attr = 'sten.__version__.__version__'}
