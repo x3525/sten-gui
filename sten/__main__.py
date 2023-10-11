@@ -19,7 +19,7 @@ along with Sten.  If not, see <https://www.gnu.org/licenses/>.
 import collections
 import ctypes
 import dataclasses
-import logging.config
+import logging
 import math
 import os
 import random
@@ -37,7 +37,10 @@ from tkinter import ttk
 from tkinter.font import Font
 from tkinter.scrolledtext import ScrolledText
 from typing import NoReturn, Optional
+from urllib.error import URLError
+from urllib.request import urlopen
 
+import defusedxml.ElementTree as ET  # type: ignore
 import numpy as np
 from PIL import Image, UnidentifiedImageError
 from numpy.typing import NDArray
@@ -55,16 +58,21 @@ warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 
 @dataclasses.dataclass
+class URL:
+    """URL repository."""
+
+    website: str = 'https://github.com/serhatcelik/sten'
+    rss: str = 'https://pypi.org/rss/project/project-sten/releases.xml'
+
+
+@dataclasses.dataclass
 class Path:
-    """File paths."""
+    """File locations."""
 
     __folder__ = os.path.dirname(__file__)
 
-    __prog__ = 'sten'
-
-    config: str = os.path.join(__folder__, f'{__prog__}.json')
-    log: str = os.path.join(__folder__, f'{__prog__}.log').replace(os.sep, '/')
-    logconfig: str = os.path.join(__folder__, f'{__prog__}.log.conf')
+    configfile: str = os.path.join(__folder__, 'sten.json')
+    logfile: str = os.path.join(__folder__, 'sten.log')
 
 
 @dataclasses.dataclass
@@ -173,12 +181,10 @@ def openasfile(event: tk.Event) -> Optional[str]:
     return 'break'  # No more event processing for "V_EVENT_OPEN_FILE"
 
 
-def show() -> None:
-    """Show a previously created stego-object."""
-    try:
-        os.startfile(Var_output.get(), operation='open')  # nosec
-    except OSError as err:
-        mb.showerror(title='Show Object', message=str(err))
+def show(path: str) -> None:
+    """Show a file."""
+    with suppress(OSError):
+        os.startfile(path, operation='open')  # nosec
 
 
 def encode(event: tk.Event) -> None:
@@ -223,7 +229,7 @@ def encode(event: tk.Event) -> None:
                 title='Encode',
                 message='Some data will be lost!',
                 detail='Message will contain the delimiter...',
-                icon='warning',
+                icon=mb.WARNING,
         ):
             return
 
@@ -313,7 +319,7 @@ def decode(event: tk.Event) -> None:
         random.seed(seed)
         random.shuffle(pixels)
 
-    for band_lsb in possibilities if cnf['brute'].get() else (Glob.band_lsb,):
+    for band_lsb in possibilities if cnf['Brute'].get() else (Glob.band_lsb,):
         bits, message = '', ''
 
         for pix, (band, lsb) in product(pixels, band_lsb):
@@ -379,13 +385,13 @@ def preferences(event: tk.Event) -> None:
         toplevel,
         anchor=tk.W,
         text='Confirm before exiting the program',
-        variable=cnf['confirmExit'],
+        variable=cnf['ConfirmExit'],
     ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
     tk.Checkbutton(
         toplevel,
         anchor=tk.W,
         text='Use brute force technique to decode',
-        variable=cnf['brute'],
+        variable=cnf['Brute'],
     ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
 
 
@@ -396,14 +402,14 @@ def properties() -> None:
 
 def close() -> None:
     """Destroy the main window."""
-    if cnf['confirmExit'].get():
+    if cnf['ConfirmExit'].get():
         if not mb.askokcancel(
                 title='Confirm Exit',
                 message='Are you sure you want to exit?',
         ):
             return
 
-    js.dump({key: variable.get() for key, variable in cnf.items()})
+    jason.dump({key: variable.get() for key, variable in cnf.items()})
 
     root.destroy()
 
@@ -443,6 +449,21 @@ def transparent() -> None:
     """Toggle "Transparent" state."""
     alpha = root.wm_attributes()[root.wm_attributes().index('-alpha') + 1]
     root.wm_attributes('-alpha', 1.5 - alpha)
+
+
+def check_for_updates(current: str) -> None:
+    """Check for program updates."""
+    try:
+        with urlopen(URL.rss, timeout=9) as feed:  # nosec
+            latest = ET.fromstring(feed.read()).findtext('channel/item/title')
+    except URLError as err:
+        mb.showerror(title='Update', message=str(err))
+    else:
+        mb.showwarning(
+            title='Update',
+            message=f'You {("are", "are not")[current != latest]} up to date.',
+            detail=f'Latest version: {latest}',
+        )
 
 
 def activate(event: tk.Event) -> None:
@@ -570,8 +591,8 @@ def refresh(event: tk.Event) -> None:
 
 def exception(*msg) -> NoReturn:
     """Report callback exception."""
-    logger.critical('\n%s', ''.join(traceback.format_exception(*msg)))
-    mb.showerror(title='Fatal Error', message=str(msg))
+    logging.critical('\n%s', log := ''.join(traceback.format_exception(*msg)))
+    mb.showerror(title='Fatal Error', message=log)
     os._exit(-1)
 
 
@@ -588,8 +609,7 @@ with suppress(AttributeError):
 # /!\ Logging /!\ #
 ###################
 with suppress(OSError):
-    logging.config.fileConfig(Path.logconfig, defaults={'logfile': Path.log})
-    logger = logging.getLogger('root')
+    logging.basicConfig(filename=Path.logfile, format='%(asctime)s%(message)s')
 
 ########
 # ROOT #
@@ -875,7 +895,16 @@ IMAGE_WEB_SITE = tk.PhotoImage(data=IMAGE_DATA_WEB_SITE)
 IMAGE_ABOUT = tk.PhotoImage(data=IMAGE_DATA_ABOUT)
 
 M_help.add_command(
-    command=lambda: webbrowser.open('https://github.com/serhatcelik/sten', 2),
+    command=lambda: check_for_updates(__version__),
+    label='Check for Updates',
+    state=tk.NORMAL,
+    underline=10,
+)
+
+M_help.add_separator()
+
+M_help.add_command(
+    command=lambda: webbrowser.open(URL.website, new=2),
     compound=tk.LEFT,
     image=IMAGE_WEB_SITE,
     label='Web Site',
@@ -1074,7 +1103,7 @@ B_show = tk.Button(
     anchor=tk.CENTER,
     bd=B_WIDE,
     bg=WHITE,
-    command=show,
+    command=lambda: show(Var_output.get()),
     compound=tk.LEFT,
     fg=BLACK,
     image=IMAGE_SHOW,
@@ -1301,11 +1330,11 @@ for title in ['message', 'decoded']:
 #################
 # Configuration #
 #################
-js = Json(Path.config)
+jason = Json(Path.configfile)
 
 cnf = collections.defaultdict(
     lambda: tk.BooleanVar(value=False),
-    {key: tk.BooleanVar(value=value) for key, value in js.load().items()}
+    {key: tk.BooleanVar(value=value) for key, value in jason.load().items()}
 )
 
 
@@ -1313,6 +1342,7 @@ cnf = collections.defaultdict(
 # ... Scheduling ... #
 ######################
 def schedule(ms: int) -> None:
+    """Periodic file existence check."""
     output = Var_output.get()
 
     B_show['state'] = tk.NORMAL if os.path.exists(output) else tk.DISABLED
