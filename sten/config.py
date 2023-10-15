@@ -14,7 +14,7 @@ class Json:
         """Deserialize a JSON document to a Python object."""
         try:
             with open(self.path, encoding='utf-8') as file:
-                return json.load(file)
+                return {str(k): bool(v) for k, v in json.load(file).items()}
         except (OSError, json.JSONDecodeError):
             return {}
 

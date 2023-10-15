@@ -19,11 +19,11 @@ along with Sten.  If not, see <https://www.gnu.org/licenses/>.
 import collections
 import ctypes
 import dataclasses
-import logging
 import math
 import os
 import random
 import string
+import subprocess as sp  # nosec
 import sys
 import tkinter as tk
 import tkinter.filedialog as fd
@@ -48,38 +48,18 @@ from numpy.typing import NDArray
 from sten.__version__ import __version__
 from sten.config import Json
 from sten.consts import *
-from sten.crypto import Hill, ciphers
+from sten.crypto import ALPHABET, Hill, ciphers
+from sten.data import Bd, Color, FilePath, Hotkey, Url, VEvent
 from sten.error import CryptoExceptionGroup
 from sten.icons import *
-from sten.utils import nonascii, splitext
-
-# Turn matching warnings into exceptions
-warnings.simplefilter('error', Image.DecompressionBombWarning)
-
-
-@dataclasses.dataclass
-class URL:
-    """URL repository."""
-
-    website: str = 'https://github.com/serhatcelik/sten'
-    rss: str = 'https://pypi.org/rss/project/project-sten/releases.xml'
-
-
-@dataclasses.dataclass
-class Path:
-    """File locations."""
-
-    __folder__ = os.path.dirname(__file__)
-
-    configfile: str = os.path.join(__folder__, 'sten.json')
-    logfile: str = os.path.join(__folder__, 'sten.log')
+from sten.utils import nonalphabet, splitext
 
 
 @dataclasses.dataclass
 class Glob:
     """Global "control" variables for the internal module."""
 
-    band_lsb: tuple[tuple[int, int], ...]
+    bandlsb: tuple[tuple[int, int], ...]
     limit: int
 
 
@@ -95,7 +75,7 @@ class Picture:
     filename: str
     extension: str
 
-    properties: str
+    properties: tuple[str, ...]
 
 
 def openasfile(event: tk.Event) -> Optional[str]:
@@ -115,7 +95,6 @@ def openasfile(event: tk.Event) -> Optional[str]:
 
         if extension.casefold() not in EXTENSIONS_PICTURE:
             retry = mb.askretrycancel(
-                title='Open File',
                 message=f'Not a valid extension: {extension}',
                 detail=f'Valid extensions: {EXTENSIONS_PICTURE_PRETTY}',
             )
@@ -132,21 +111,19 @@ def openasfile(event: tk.Event) -> Optional[str]:
                 UnidentifiedImageError,
                 Image.DecompressionBombError, Image.DecompressionBombWarning,
         ) as err:
-            retry = mb.askretrycancel(title='Open File', message=str(err))
+            retry = mb.askretrycancel(message=str(err))
             continue
 
         if mode not in MODES_PICTURE:
             retry = mb.askretrycancel(
-                title='Open File',
                 message=f'Mode not supported: {mode}',
                 detail=f'Supported modes: {MODES_PICTURE_PRETTY}',
             )
             continue
 
-        if pixel < MIN_PIXEL:
+        if pixel < MINIMUM_PIXEL:
             retry = mb.askretrycancel(
-                title='Open File',
-                message=f'Need minimum {MIN_PIXEL} pixels.',
+                message=f'Need minimum {MINIMUM_PIXEL} pixels.',
                 detail=f'Provided: {pixel} pixels',
             )
             continue
@@ -162,13 +139,11 @@ def openasfile(event: tk.Event) -> Optional[str]:
 
         capacity = (Picture.pixel * RGB) - len(DELIMITER)
 
-        Picture.properties = '\n'.join(
-            [
-                f'Capacity: {capacity} characters',
-                f'Width: {width} pixels',
-                f'Height: {height} pixels',
-                f'Bit depth: {B * len(Picture.mode)} ({Picture.mode})',
-            ]
+        Picture.properties = (
+            f'Capacity: {capacity} characters',
+            f'Width: {width} pixels',
+            f'Height: {height} pixels',
+            f'Bit depth: {B * len(Picture.mode)} ({Picture.mode})',
         )
 
         Var_opened.set(file)
@@ -178,7 +153,7 @@ def openasfile(event: tk.Event) -> Optional[str]:
 
         return None
 
-    return 'break'  # No more event processing for "V_EVENT_OPEN_FILE"
+    return 'break'  # No more event processing for virtual event "OPEN_FILE"
 
 
 def show(path: str) -> None:
@@ -194,15 +169,14 @@ def encode(event: tk.Event) -> None:
     if (not key) and name:
         return
 
-    message = notebook['message'].get('1.0', tk.END)[:-1]
+    message = tabs['message'].get('1.0', tk.END)[:-1]
 
     if not message:
         return
 
-    if char := nonascii(message):
+    if char := nonalphabet(message, ALPHABET):
         mb.showerror(
-            title='Encode',
-            message='Message contains a non-ASCII character.',
+            message='Message contains a non-alphabet character.',
             detail=f'Character: {char}',
         )
         return
@@ -210,7 +184,7 @@ def encode(event: tk.Event) -> None:
     try:
         cipher = ciphers[name](key, message)
     except CryptoExceptionGroup as err:
-        mb.showerror(title='Encode', message=str(err))
+        mb.showerror(message=str(err))
         return
 
     message = cipher.encrypt()
@@ -218,7 +192,6 @@ def encode(event: tk.Event) -> None:
     # Check the character limit, for Hill cipher :/
     if (cipher.name == Hill.name) and (len(message) > Glob.limit):
         mb.showerror(
-            title='Encode',
             message='Cipher text length exceeds the character limit.',
             detail=f'Limit: {Glob.limit}',
         )
@@ -226,9 +199,8 @@ def encode(event: tk.Event) -> None:
 
     if DELIMITER in message:
         if not mb.askokcancel(
-                title='Encode',
                 message='Some data will be lost!',
-                detail='Message will contain the delimiter...',
+                detail='MESSAGE WILL CONTAIN THE DELIMITER',
                 icon=mb.WARNING,
         ):
             return
@@ -248,7 +220,6 @@ def encode(event: tk.Event) -> None:
 
     if extension.casefold() not in EXTENSIONS_PICTURE:
         mb.showerror(
-            title='Save As',
             message=f'Not a valid extension: {extension}',
             detail=f'Valid extensions: {EXTENSIONS_PICTURE_PRETTY}',
         )
@@ -271,7 +242,7 @@ def encode(event: tk.Event) -> None:
 
     i = 0
 
-    for pix, (band, lsb) in product(pixels, Glob.band_lsb):
+    for pix, (band, lsb) in product(pixels, Glob.bandlsb):
         if i >= bits_length:
             break
 
@@ -290,14 +261,14 @@ def encode(event: tk.Event) -> None:
     try:
         Image.fromarray(array).save(output)
     except OSError as err:
-        mb.showerror(title='Save As', message=str(err))
+        mb.showerror(message=str(err))
         return
 
     Var_output.set(output)
 
     B_show['state'] = tk.NORMAL
 
-    mb.showinfo(title='Encode', message='File is encoded!')
+    mb.showinfo(message='File is encoded!')
 
 
 def decode(event: tk.Event) -> None:
@@ -310,7 +281,7 @@ def decode(event: tk.Event) -> None:
     try:
         cipher = ciphers[name](key)
     except CryptoExceptionGroup as err:
-        mb.showerror(title='Decode', message=str(err))
+        mb.showerror(message=str(err))
         return
 
     pixels = list(range(Picture.pixel))
@@ -319,10 +290,10 @@ def decode(event: tk.Event) -> None:
         random.seed(seed)
         random.shuffle(pixels)
 
-    for band_lsb in possibilities if cnf['Brute'].get() else (Glob.band_lsb,):
+    for bandlsb in possibilities if cnf['BruteLSB'].get() else (Glob.bandlsb,):
         bits, message = '', ''
 
-        for pix, (band, lsb) in product(pixels, band_lsb):
+        for pix, (band, lsb) in product(pixels, bandlsb):
             if message.endswith(DELIMITER):
                 break  # No need to go any further
 
@@ -337,14 +308,13 @@ def decode(event: tk.Event) -> None:
         if message.endswith(DELIMITER):
             break
     else:
-        mb.showwarning(title='Decode', message='No hidden message found.')
+        mb.showwarning(message='No hidden message found.')
         return
 
-    if nonascii(message):
+    if nonalphabet(message, ALPHABET):
         mb.showerror(
-            title='Decode',
-            message='Message contains a non-ASCII character.',
-            detail='Are you sure this message was created using Sten?',
+            message='Message contains a non-alphabet character.',
+            detail='ARE YOU SURE THIS MESSAGE WAS CREATED USING STEN?',
         )
         return
 
@@ -353,18 +323,18 @@ def decode(event: tk.Event) -> None:
     cipher.txt = message
     message = cipher.decrypt()
 
-    notebook['decoded']['state'] = tk.NORMAL
-    notebook['decoded'].delete('1.0', tk.END)
-    notebook['decoded'].insert('1.0', message)
-    notebook['decoded']['state'] = tk.DISABLED
+    tabs['decoded']['state'] = tk.NORMAL
+    tabs['decoded'].delete('1.0', tk.END)
+    tabs['decoded'].insert('1.0', message)
+    tabs['decoded']['state'] = tk.DISABLED
 
-    N_stego.select(notebook['decoded'])
+    N_stego.select(tabs['decoded'])
 
     Var_output.set('')
 
     B_show['state'] = tk.DISABLED
 
-    mb.showinfo(title='Decode', message='File is decoded!')
+    mb.showinfo(message='File is decoded!')
 
 
 def preferences(event: tk.Event) -> None:
@@ -372,6 +342,8 @@ def preferences(event: tk.Event) -> None:
     toplevel = tk.Toplevel(root)
 
     toplevel.grab_set()  # Direct all events to this Toplevel
+
+    toplevel.wm_attributes('-topmost', 1)
 
     toplevel.pack_propagate(True)
 
@@ -391,27 +363,25 @@ def preferences(event: tk.Event) -> None:
         toplevel,
         anchor=tk.W,
         text='Use brute force technique to decode',
-        variable=cnf['Brute'],
+        variable=cnf['BruteLSB'],
     ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
 
 
 def properties() -> None:
     """Show image properties."""
-    mb.showinfo(title='Image Properties', message=Picture.properties)
+    mb.showinfo(message='\n'.join(getattr(Picture, 'properties', [])))
 
 
-def close() -> None:
-    """Destroy the main window."""
-    if cnf['ConfirmExit'].get():
-        if not mb.askokcancel(
-                title='Confirm Exit',
-                message='Are you sure you want to exit?',
-        ):
-            return
+def close(ask: bool = True) -> None:
+    """Save preferences and destroy the main window."""
+    if ask:
+        if cnf['ConfirmExit'].get():
+            if not mb.askokcancel(message='Exit?'):
+                return
 
     jason.dump({key: variable.get() for key, variable in cnf.items()})
 
-    root.destroy()
+    root.quit()  # Widgets can be accessed later
 
 
 def manipulate(v_event: str) -> None:
@@ -420,7 +390,7 @@ def manipulate(v_event: str) -> None:
 
     if not widget:
         return
-    if widget is not notebook['message']:
+    if widget is not tabs['message']:
         return
 
     widget.event_generate(v_event)
@@ -451,35 +421,64 @@ def transparent() -> None:
     root.wm_attributes('-alpha', 1.5 - alpha)
 
 
-def check_for_updates(current: str) -> None:
-    """Check for program updates."""
+def checkandupdate() -> None:
+    """Check for program updates, optionally update to the latest version."""
     try:
-        with urlopen(URL.rss, timeout=9) as feed:  # nosec
+        with urlopen(Url.RSS, timeout=9) as feed:  # nosec
             latest = ET.fromstring(feed.read()).findtext('channel/item/title')
     except URLError as err:
-        mb.showerror(title='Update', message=str(err))
-    else:
-        mb.showwarning(
-            title='Update',
-            message=f'You {("are", "are not")[current != latest]} up to date.',
-            detail=f'Latest version: {latest}',
+        mb.showerror(message=str(err))
+        return
+
+    if __version__ == latest:
+        mb.showinfo(message='Sten is up-to-date!')
+        return
+
+    if not mb.askyesno(
+            message='Sten is outdated. Update now?',
+            detail='PROGRAM WILL CLOSE',
+            icon=mb.WARNING,
+    ):
+        return
+
+    # No need to put quotes around the path (for this particular case)
+    file = sys.executable
+
+    parameters = '-m pip install -U project.sten'
+
+    close(False)  # Otherwise, [Error 5] Access is denied
+
+    try:
+        value = ctypes.windll.shell32.ShellExecuteW(
+            None, 'open', file, parameters, None, 1,  # SW_SHOWNORMAL
         )
+        if int(value) > 32:
+            return
+    except AttributeError:
+        with suppress(FileNotFoundError, sp.CalledProcessError):
+            sp.run([file, *parameters.split()], check=True)  # nosec
+            return
+
+    mb.showerror(message='Something went wrong!')
 
 
 def activate(event: tk.Event) -> None:
     """When a file is opened, this method binds widgets to "F5" once."""
     # Unbind to prevent reactivation
-    root.bind(V_EVENT_OPEN_FILE, openasfile)
-    root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
+    root.bind(VEvent.OPEN_FILE, openasfile)
+    root.bind(VEvent.OPEN_FILE, refresh, add='+')
 
-    M_file.entryconfigure(MENU_ITEM_INDEX_IMAGE_PROPERTIES, state=tk.NORMAL)
+    M_edit.entryconfigure(MENU_ITEM_INDEX_UNDO, state=tk.NORMAL)
+    M_edit.entryconfigure(MENU_ITEM_INDEX_REDO, state=tk.NORMAL)
+    M_edit.entryconfigure(MENU_ITEM_INDEX_CUT, state=tk.NORMAL)
+    M_edit.entryconfigure(MENU_ITEM_INDEX_COPY, state=tk.NORMAL)
+    M_edit.entryconfigure(MENU_ITEM_INDEX_PASTE, state=tk.NORMAL)
+    M_edit.entryconfigure(MENU_ITEM_INDEX_SELECT_ALL, state=tk.NORMAL)
 
-    menu.entryconfigure(MENU_INDEX_EDIT, state=tk.NORMAL)
-
-    root.bind(V_EVENT_UNDO, refresh)
-    root.bind(V_EVENT_REDO, refresh)
-    root.bind(V_EVENT_CUT, refresh)
-    root.bind(V_EVENT_PASTE, refresh)
+    root.bind(VEvent.UNDO, refresh)
+    root.bind(VEvent.REDO, refresh)
+    root.bind(VEvent.CUT, refresh)
+    root.bind(VEvent.PASTE, refresh)
 
     E_prng['state'] = tk.NORMAL
 
@@ -489,16 +488,16 @@ def activate(event: tk.Event) -> None:
     E_key['state'] = tk.NORMAL
     E_key.bind('<KeyRelease>', refresh)
 
-    N_stego.tab(notebook['message'], state=tk.NORMAL)
-    N_stego.tab(notebook['decoded'], state=tk.NORMAL)
+    N_stego.tab(tabs['message'], state=tk.NORMAL)
+    N_stego.tab(tabs['decoded'], state=tk.NORMAL)
 
-    N_stego.select(notebook['message'])
+    N_stego.select(tabs['message'])
 
-    notebook['message']['state'] = tk.NORMAL
-    notebook['message']['bg'] = WHITE
-    notebook['message'].bind('<ButtonPress-3>', focusset)
-    notebook['message'].bind('<ButtonRelease-3>', popup)
-    notebook['message'].bind('<KeyRelease>', refresh)
+    tabs['message']['state'] = tk.NORMAL
+    tabs['message']['bg'] = Color.WHITE
+    tabs['message'].bind('<ButtonPress-3>', focusset)
+    tabs['message'].bind('<ButtonRelease-3>', popup)
+    tabs['message'].bind('<KeyRelease>', refresh)
 
     for scl in scales:
         scl['state'] = tk.NORMAL
@@ -520,34 +519,34 @@ def refresh(event: tk.Event) -> None:
         pass
     else:
         E_key.delete('0', tk.END)
-        E_key['vcmd'] = Name_Vcmd[ciphername]  # Update validate command
+        E_key['vcmd'] = namevcmd[ciphername]  # Update validate command
 
-    message = notebook['message'].get('1.0', tk.END)[:-1]
+    message = tabs['message'].get('1.0', tk.END)[:-1]
 
     key = E_key.get()
 
     # Activate/deactivate encode/decode features
     if (not key) and ciphername:
-        root.unbind(V_EVENT_ENCODE)
-        root.unbind(V_EVENT_DECODE)
+        root.unbind(VEvent.ENCODE)
+        root.unbind(VEvent.DECODE)
         M_file.entryconfigure(MENU_ITEM_INDEX_ENCODE, state=tk.DISABLED)
         M_file.entryconfigure(MENU_ITEM_INDEX_DECODE, state=tk.DISABLED)
         B_encode['state'] = tk.DISABLED
         B_decode['state'] = tk.DISABLED
     else:
-        root.bind(V_EVENT_DECODE, decode)
+        root.bind(VEvent.DECODE, decode)
         M_file.entryconfigure(MENU_ITEM_INDEX_DECODE, state=tk.NORMAL)
         B_decode['state'] = tk.NORMAL
         if message:
-            root.bind(V_EVENT_ENCODE, encode)
+            root.bind(VEvent.ENCODE, encode)
             M_file.entryconfigure(MENU_ITEM_INDEX_ENCODE, state=tk.NORMAL)
             B_encode['state'] = tk.NORMAL
         else:
-            root.unbind(V_EVENT_ENCODE)
+            root.unbind(VEvent.ENCODE)
             M_file.entryconfigure(MENU_ITEM_INDEX_ENCODE, state=tk.DISABLED)
             B_encode['state'] = tk.DISABLED
 
-    band_lsb = {
+    bandlsb = {
         band: lsb
         for band, scl in enumerate(scales) if (lsb := int(scl.get())) != 0
     }
@@ -555,23 +554,23 @@ def refresh(event: tk.Event) -> None:
     if widget not in scales:
         pass
     else:
-        if len(band_lsb) != 0:
+        if len(bandlsb) != 0:
             # LSB warning?
-            widget['fg'] = BLACK if (widget.get() < 4) else RED
+            widget['fg'] = Color.BLACK if (widget.get() < 4) else Color.RED
         # Fix LSB
         else:
-            widget['fg'] = BLACK
+            widget['fg'] = Color.BLACK
             widget.set(1)
-            band_lsb = {scales.index(widget): 1}
+            bandlsb = {scales.index(widget): 1}
 
-    limit = ((Picture.pixel * sum(band_lsb.values())) // B) - len(DELIMITER)
+    limit = ((Picture.pixel * sum(bandlsb.values())) // B) - len(DELIMITER)
 
     if len(message) > limit:
         # Delete excess message
-        notebook['message'].delete('1.0', tk.END)
-        notebook['message'].insert('1.0', message[:limit])
+        tabs['message'].delete('1.0', tk.END)
+        tabs['message'].insert('1.0', message[:limit])
 
-    used = len(notebook['message'].get('1.0', tk.END)[:-1])
+    used = len(tabs['message'].get('1.0', tk.END)[:-1])
 
     left = limit - used
 
@@ -580,19 +579,30 @@ def refresh(event: tk.Event) -> None:
     if event.char in ['']:
         pass
     else:
-        if (widget is notebook['message']) or (left == 0):
+        if (widget is tabs['message']) or (left == 0):
             # Scroll such that the character at "INSERT" index is visible
-            notebook['message'].see(notebook['message'].index(tk.INSERT))
+            tabs['message'].see(tabs['message'].index(tk.INSERT))
 
-    Glob.band_lsb = tuple(band_lsb.items())
+    Glob.bandlsb = tuple(bandlsb.items())
 
     Glob.limit = limit
 
 
+def schedule(ms: int) -> None:
+    """Periodic file existence check."""
+    output = Var_output.get()
+
+    B_show['state'] = tk.NORMAL if os.path.exists(output) else tk.DISABLED
+
+    root.after(ms, schedule, ms)
+
+
+###################
+# /!\ Logging /!\ #
+###################
 def exception(*msg) -> NoReturn:
     """Report callback exception."""
-    logging.critical('\n%s', log := ''.join(traceback.format_exception(*msg)))
-    mb.showerror(title='Fatal Error', message=log)
+    mb.showerror(message=''.join(traceback.format_exception(*msg)))
     os._exit(-1)
 
 
@@ -602,18 +612,12 @@ sys.excepthook = exception
 # Windows OS Specific #
 #######################
 with suppress(AttributeError):
-    ctypes.windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS)
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('sten.s.c')
 
-###################
-# /!\ Logging /!\ #
-###################
-with suppress(OSError):
-    logging.basicConfig(filename=Path.logfile, format='%(asctime)s%(message)s')
-
-########
-# ROOT #
-########
+################
+# /|\ Root /|\ #
+################
 root = tk.Tk()
 
 root.report_callback_exception = exception
@@ -658,14 +662,22 @@ style = ttk.Style()
 
 style.configure('.', font=font)  # Ttk widgets only!
 
+#################
+# Configuration #
+#################
+jason = Json(FilePath.CONFIG)
+
+cnf = collections.defaultdict(
+    lambda: tk.BooleanVar(value=False),
+    {key: tk.BooleanVar(value=value) for key, value in jason.load().items()}
+)
+
 ########
 # Menu #
 ########
 menu = tk.Menu(root, tearoff=False)
 
 root.configure(menu=menu)
-
-MENU_INDEX_EDIT = 1
 
 ##############
 # Menu: File #
@@ -674,25 +686,20 @@ M_file = tk.Menu(menu, tearoff=False)
 
 menu.add_cascade(label='File', menu=M_file, state=tk.NORMAL, underline=0)
 
-MENU_ITEM_INDEX_ENCODE = 2
-MENU_ITEM_INDEX_DECODE = 3
-MENU_ITEM_INDEX_PREFERENCES = 5
-MENU_ITEM_INDEX_IMAGE_PROPERTIES = 6
-
 IMAGE_OPEN_FILE = tk.PhotoImage(data=IMAGE_DATA_OPEN_FILE)
 IMAGE_SHOW = tk.PhotoImage(data=IMAGE_DATA_SHOW)
 IMAGE_ENCODE = tk.PhotoImage(data=IMAGE_DATA_ENCODE)
 IMAGE_DECODE = tk.PhotoImage(data=IMAGE_DATA_DECODE)
 IMAGE_PREFERENCES = tk.PhotoImage(data=IMAGE_DATA_PREFERENCES)
 
-root.event_add(V_EVENT_OPEN_FILE, *SEQUENCE_OPEN_FILE)
-root.event_add(V_EVENT_ENCODE, *SEQUENCE_ENCODE)
-root.event_add(V_EVENT_DECODE, *SEQUENCE_DECODE)
-root.event_add(V_EVENT_PREFERENCES, *SEQUENCE_PREFERENCES)
+root.event_add(VEvent.OPEN_FILE, *SEQUENCE_OPEN_FILE)
+root.event_add(VEvent.ENCODE, *SEQUENCE_ENCODE)
+root.event_add(VEvent.DECODE, *SEQUENCE_DECODE)
+root.event_add(VEvent.PREFERENCES, *SEQUENCE_PREFERENCES)
 
 M_file.add_command(
-    accelerator=SHORTCUT_OPEN_FILE,
-    command=lambda: root.event_generate(V_EVENT_OPEN_FILE),
+    accelerator=Hotkey.OPEN_FILE,
+    command=lambda: root.event_generate(VEvent.OPEN_FILE),
     compound=tk.LEFT,
     image=IMAGE_OPEN_FILE,
     label='Open File',
@@ -700,28 +707,28 @@ M_file.add_command(
     underline=3,
 )
 
-root.bind(V_EVENT_OPEN_FILE, openasfile)
-root.bind(V_EVENT_OPEN_FILE, activate, add='+')
-root.bind(V_EVENT_OPEN_FILE, refresh, add='+')
+root.bind(VEvent.OPEN_FILE, openasfile)
+root.bind(VEvent.OPEN_FILE, activate, add='+')
+root.bind(VEvent.OPEN_FILE, refresh, add='+')
 
 M_file.add_separator()
 
 M_file.add_command(
-    accelerator=SHORTCUT_ENCODE,
-    command=lambda: root.event_generate(V_EVENT_ENCODE),
+    accelerator=Hotkey.ENCODE,
+    command=lambda: root.event_generate(VEvent.ENCODE),
     compound=tk.LEFT,
     image=IMAGE_ENCODE,
-    label='Encode',
+    label=(MENU_ITEM_INDEX_ENCODE := 'Encode'),
     state=tk.DISABLED,
     underline=0,
 )
 
 M_file.add_command(
-    accelerator=SHORTCUT_DECODE,
-    command=lambda: root.event_generate(V_EVENT_DECODE),
+    accelerator=Hotkey.DECODE,
+    command=lambda: root.event_generate(VEvent.DECODE),
     compound=tk.LEFT,
     image=IMAGE_DECODE,
-    label='Decode',
+    label=(MENU_ITEM_INDEX_DECODE := 'Decode'),
     state=tk.DISABLED,
     underline=0,
 )
@@ -729,21 +736,21 @@ M_file.add_command(
 M_file.add_separator()
 
 M_file.add_command(
-    accelerator=SHORTCUT_PREFERENCES,
-    command=lambda: root.event_generate(V_EVENT_PREFERENCES),
+    accelerator=Hotkey.PREFERENCES,
+    command=lambda: root.event_generate(VEvent.PREFERENCES),
     compound=tk.LEFT,
     image=IMAGE_PREFERENCES,
-    label='Preferences',
+    label=(MENU_ITEM_INDEX_PREFERENCES := 'Preferences'),
     state=tk.NORMAL,
     underline=0,
 )
 
-root.bind(V_EVENT_PREFERENCES, preferences)
+root.bind(VEvent.PREFERENCES, preferences)
 
 M_file.add_command(
     command=properties,
     label='Image Properties',
-    state=tk.DISABLED,
+    state=tk.NORMAL,
     underline=7,
 )
 
@@ -761,7 +768,7 @@ M_file.add_command(
 ##############
 M_edit = tk.Menu(menu, tearoff=False)
 
-menu.add_cascade(label='Edit', menu=M_edit, state=tk.DISABLED, underline=0)
+menu.add_cascade(label='Edit', menu=M_edit, state=tk.NORMAL, underline=0)
 
 IMAGE_UNDO = tk.PhotoImage(data=IMAGE_DATA_UNDO)
 IMAGE_REDO = tk.PhotoImage(data=IMAGE_DATA_REDO)
@@ -771,82 +778,82 @@ IMAGE_PASTE = tk.PhotoImage(data=IMAGE_DATA_PASTE)
 IMAGE_SELECT_ALL = tk.PhotoImage(data=IMAGE_DATA_SELECT_ALL)
 
 # Delete all defaults...
-root.event_delete(V_EVENT_UNDO)
-root.event_delete(V_EVENT_REDO)
-root.event_delete(V_EVENT_CUT)
-root.event_delete(V_EVENT_COPY)
-root.event_delete(V_EVENT_PASTE)
-root.event_delete(V_EVENT_SELECT_ALL)
+root.event_delete(VEvent.UNDO)
+root.event_delete(VEvent.REDO)
+root.event_delete(VEvent.CUT)
+root.event_delete(VEvent.COPY)
+root.event_delete(VEvent.PASTE)
+root.event_delete(VEvent.SELECT_ALL)
 
 # ...then add new ones
-root.event_add(V_EVENT_UNDO, *SEQUENCE_UNDO)
-root.event_add(V_EVENT_REDO, *SEQUENCE_REDO)
-root.event_add(V_EVENT_CUT, *SEQUENCE_CUT)
-root.event_add(V_EVENT_COPY, *SEQUENCE_COPY)
-root.event_add(V_EVENT_PASTE, *SEQUENCE_PASTE)
-root.event_add(V_EVENT_SELECT_ALL, *SEQUENCE_SELECT_ALL)
+root.event_add(VEvent.UNDO, *SEQUENCE_UNDO)
+root.event_add(VEvent.REDO, *SEQUENCE_REDO)
+root.event_add(VEvent.CUT, *SEQUENCE_CUT)
+root.event_add(VEvent.COPY, *SEQUENCE_COPY)
+root.event_add(VEvent.PASTE, *SEQUENCE_PASTE)
+root.event_add(VEvent.SELECT_ALL, *SEQUENCE_SELECT_ALL)
 
 M_edit.add_command(
-    accelerator=SHORTCUT_UNDO,
-    command=lambda: manipulate(V_EVENT_UNDO),
+    accelerator=Hotkey.UNDO,
+    command=lambda: manipulate(VEvent.UNDO),
     compound=tk.LEFT,
     image=IMAGE_UNDO,
-    label='Undo',
-    state=tk.NORMAL,
+    label=(MENU_ITEM_INDEX_UNDO := 'Undo'),
+    state=tk.DISABLED,
     underline=0,
 )
 
 M_edit.add_command(
-    accelerator=SHORTCUT_REDO,
-    command=lambda: manipulate(V_EVENT_REDO),
+    accelerator=Hotkey.REDO,
+    command=lambda: manipulate(VEvent.REDO),
     compound=tk.LEFT,
     image=IMAGE_REDO,
-    label='Redo',
-    state=tk.NORMAL,
+    label=(MENU_ITEM_INDEX_REDO := 'Redo'),
+    state=tk.DISABLED,
     underline=0,
 )
 
 M_edit.add_separator()
 
 M_edit.add_command(
-    accelerator=SHORTCUT_CUT,
-    command=lambda: manipulate(V_EVENT_CUT),
+    accelerator=Hotkey.CUT,
+    command=lambda: manipulate(VEvent.CUT),
     compound=tk.LEFT,
     image=IMAGE_CUT,
-    label='Cut',
-    state=tk.NORMAL,
+    label=(MENU_ITEM_INDEX_CUT := 'Cut'),
+    state=tk.DISABLED,
     underline=2,
 )
 
 M_edit.add_command(
-    accelerator=SHORTCUT_COPY,
-    command=lambda: manipulate(V_EVENT_COPY),
+    accelerator=Hotkey.COPY,
+    command=lambda: manipulate(VEvent.COPY),
     compound=tk.LEFT,
     image=IMAGE_COPY,
-    label='Copy',
-    state=tk.NORMAL,
+    label=(MENU_ITEM_INDEX_COPY := 'Copy'),
+    state=tk.DISABLED,
     underline=0,
 )
 
 M_edit.add_command(
-    accelerator=SHORTCUT_PASTE,
-    command=lambda: manipulate(V_EVENT_PASTE),
+    accelerator=Hotkey.PASTE,
+    command=lambda: manipulate(VEvent.PASTE),
     compound=tk.LEFT,
     image=IMAGE_PASTE,
-    label='Paste',
-    state=tk.NORMAL,
+    label=(MENU_ITEM_INDEX_PASTE := 'Paste'),
+    state=tk.DISABLED,
     underline=0,
 )
 
 M_edit.add_separator()
 
 M_edit.add_command(
-    accelerator=SHORTCUT_SELECT_ALL,
-    command=lambda: manipulate(V_EVENT_SELECT_ALL),
+    accelerator=Hotkey.SELECT_ALL,
+    command=lambda: manipulate(VEvent.SELECT_ALL),
     compound=tk.LEFT,
     image=IMAGE_SELECT_ALL,
-    label='Select All',
-    state=tk.NORMAL,
+    label=(MENU_ITEM_INDEX_SELECT_ALL := 'Select All'),
+    state=tk.DISABLED,
     underline=7,
 )
 
@@ -895,7 +902,7 @@ IMAGE_WEB_SITE = tk.PhotoImage(data=IMAGE_DATA_WEB_SITE)
 IMAGE_ABOUT = tk.PhotoImage(data=IMAGE_DATA_ABOUT)
 
 M_help.add_command(
-    command=lambda: check_for_updates(__version__),
+    command=checkandupdate,
     label='Check for Updates',
     state=tk.NORMAL,
     underline=10,
@@ -904,7 +911,7 @@ M_help.add_command(
 M_help.add_separator()
 
 M_help.add_command(
-    command=lambda: webbrowser.open(URL.website, new=2),
+    command=lambda: webbrowser.open(Url.WEBSITE, new=2),
     compound=tk.LEFT,
     image=IMAGE_WEB_SITE,
     label='Web Site',
@@ -913,7 +920,7 @@ M_help.add_command(
 )
 
 M_help.add_command(
-    command=lambda: mb.showinfo(title='About', message=__doc__),
+    command=lambda: mb.showinfo(message=__doc__),
     compound=tk.LEFT,
     image=IMAGE_ABOUT,
     label='About',
@@ -926,8 +933,8 @@ M_help.add_command(
 #########
 frame = tk.Frame(
     root,
-    bd=B_NONE,
-    bg=BLACK,
+    bd=Bd.NONE,
+    bg=Color.BLACK,
     relief=tk.FLAT,
 )
 
@@ -939,6 +946,7 @@ frame.grid_rowconfigure(index=2, weight=0)
 frame.grid_rowconfigure(index=3, weight=1)
 frame.grid_columnconfigure(index=0, weight=0)
 frame.grid_columnconfigure(index=1, weight=1)
+
 frame.pack_configure(
     expand=True, fill=tk.BOTH, side=tk.TOP
 )
@@ -948,8 +956,8 @@ frame.pack_configure(
 ################
 F_stego = tk.Frame(
     frame,
-    bd=B_THIN,
-    bg=BLACK,
+    bd=Bd.THIN,
+    bg=Color.BLACK,
     relief=tk.RIDGE,
 )
 
@@ -964,13 +972,13 @@ F_stego.grid_configure(
 #################
 B_encode = tk.Button(
     F_stego,
-    activebackground=WHITE,
+    activebackground=Color.WHITE,
     anchor=tk.CENTER,
-    bd=B_WIDE,
-    bg=WHITE,
-    command=lambda: root.event_generate(V_EVENT_ENCODE),
+    bd=Bd.WIDE,
+    bg=Color.WHITE,
+    command=lambda: root.event_generate(VEvent.ENCODE),
     compound=tk.LEFT,
-    fg=BLACK,
+    fg=Color.BLACK,
     image=IMAGE_ENCODE,
     relief=tk.FLAT,
     state=tk.DISABLED,
@@ -987,13 +995,13 @@ B_encode.pack_configure(
 #################
 B_decode = tk.Button(
     F_stego,
-    activebackground=WHITE,
+    activebackground=Color.WHITE,
     anchor=tk.CENTER,
-    bd=B_WIDE,
-    bg=WHITE,
-    command=lambda: root.event_generate(V_EVENT_DECODE),
+    bd=Bd.WIDE,
+    bg=Color.WHITE,
+    command=lambda: root.event_generate(VEvent.DECODE),
     compound=tk.LEFT,
-    fg=BLACK,
+    fg=Color.BLACK,
     image=IMAGE_DECODE,
     relief=tk.FLAT,
     state=tk.DISABLED,
@@ -1010,8 +1018,8 @@ B_decode.pack_configure(
 ###############
 F_info = tk.Frame(
     frame,
-    bd=B_THIN,
-    bg=BLACK,
+    bd=Bd.THIN,
+    bg=Color.BLACK,
     relief=tk.RIDGE,
 )
 
@@ -1022,6 +1030,7 @@ F_info.grid_rowconfigure(index=1, weight=1)
 F_info.grid_columnconfigure(index=0, weight=0)
 F_info.grid_columnconfigure(index=1, weight=1)
 F_info.grid_columnconfigure(index=2, weight=0)
+
 F_info.grid_configure(
     row=0, column=1, padx=PX, pady=PY, sticky=tk.NSEW
 )
@@ -1032,9 +1041,9 @@ F_info.grid_configure(
 tk.Label(
     F_info,
     anchor=tk.CENTER,
-    bd=B_NONE,
-    bg=BLACK,
-    fg=WHITE,
+    bd=Bd.NONE,
+    bg=Color.BLACK,
+    fg=Color.WHITE,
     relief=tk.FLAT,
     state=tk.NORMAL,
     takefocus=False,
@@ -1043,9 +1052,9 @@ tk.Label(
 
 tk.Entry(
     F_info,
-    bd=B_NONE,
-    fg=BLACK,
-    readonlybackground=BUTTON,
+    bd=Bd.NONE,
+    fg=Color.BLACK,
+    readonlybackground=Color.BUTTON,
     relief=tk.FLAT,
     state='readonly',
     takefocus=False,
@@ -1054,13 +1063,13 @@ tk.Entry(
 
 B_open = tk.Button(
     F_info,
-    activebackground=WHITE,
+    activebackground=Color.WHITE,
     anchor=tk.CENTER,
-    bd=B_WIDE,
-    bg=WHITE,
-    command=lambda: root.event_generate(V_EVENT_OPEN_FILE),
+    bd=Bd.WIDE,
+    bg=Color.WHITE,
+    command=lambda: root.event_generate(VEvent.OPEN_FILE),
     compound=tk.LEFT,
-    fg=BLACK,
+    fg=Color.BLACK,
     image=IMAGE_OPEN_FILE,
     relief=tk.FLAT,
     state=tk.NORMAL,
@@ -1077,9 +1086,9 @@ B_open.grid_configure(
 tk.Label(
     F_info,
     anchor=tk.CENTER,
-    bd=B_NONE,
-    bg=BLACK,
-    fg=WHITE,
+    bd=Bd.NONE,
+    bg=Color.BLACK,
+    fg=Color.WHITE,
     relief=tk.FLAT,
     state=tk.NORMAL,
     takefocus=False,
@@ -1088,9 +1097,9 @@ tk.Label(
 
 tk.Entry(
     F_info,
-    bd=B_NONE,
-    fg=BLACK,
-    readonlybackground=BUTTON,
+    bd=Bd.NONE,
+    fg=Color.BLACK,
+    readonlybackground=Color.BUTTON,
     relief=tk.FLAT,
     state='readonly',
     takefocus=False,
@@ -1099,13 +1108,13 @@ tk.Entry(
 
 B_show = tk.Button(
     F_info,
-    activebackground=WHITE,
+    activebackground=Color.WHITE,
     anchor=tk.CENTER,
-    bd=B_WIDE,
-    bg=WHITE,
+    bd=Bd.WIDE,
+    bg=Color.WHITE,
     command=lambda: show(Var_output.get()),
     compound=tk.LEFT,
-    fg=BLACK,
+    fg=Color.BLACK,
     image=IMAGE_SHOW,
     relief=tk.FLAT,
     state=tk.DISABLED,
@@ -1121,9 +1130,9 @@ B_show.grid_configure(
 ###############
 F_prng = tk.LabelFrame(
     frame,
-    bd=B_THIN,
-    bg=BLACK,
-    fg=WHITE,
+    bd=Bd.THIN,
+    bg=Color.BLACK,
+    fg=Color.WHITE,
     labelanchor=tk.S,
     relief=tk.RIDGE,
     text='PRNG',
@@ -1140,17 +1149,17 @@ F_prng.grid_configure(
 ###################
 E_prng = tk.Entry(
     F_prng,
-    bd=B_NONE,
-    bg=WHITE,
-    disabledbackground=BUTTON,
-    fg=BLACK,
+    bd=Bd.NONE,
+    bg=Color.WHITE,
+    disabledbackground=Color.BUTTON,
+    fg=Color.BLACK,
     relief=tk.FLAT,
     show=ENTRY_SHOW_CHAR,
     state=tk.DISABLED,
     takefocus=True,
 )
 
-E_prng.bind(V_EVENT_PASTE, lambda e: 'break')
+E_prng.bind(VEvent.PASTE, lambda e: 'break')
 
 E_prng.pack_configure(
     expand=True, fill=tk.BOTH, ipady=IY, padx=PX, pady=PY, side=tk.TOP
@@ -1161,9 +1170,9 @@ E_prng.pack_configure(
 #################
 F_crypto = tk.LabelFrame(
     frame,
-    bd=B_THIN,
-    bg=BLACK,
-    fg=WHITE,
+    bd=Bd.THIN,
+    bg=Color.BLACK,
+    fg=Color.WHITE,
     labelanchor=tk.S,
     relief=tk.RIDGE,
     text='Encryption',
@@ -1180,8 +1189,8 @@ F_crypto.grid_configure(
 ####################
 X_ciphers = ttk.Combobox(
     F_crypto,
-    background=WHITE,
-    foreground=BLACK,
+    background=Color.WHITE,
+    foreground=Color.BLACK,
     state=tk.DISABLED,
     takefocus=True,
     values=tuple(ciphers),
@@ -1196,26 +1205,26 @@ X_ciphers.pack_configure(
 ####################
 # Cipher Key Entry #
 ####################
-Name_Vcmd = {
+namevcmd = {
     name: (root.register(cipher.validate), *cipher.code)
     for name, cipher in ciphers.items()
 }
 
 E_key = tk.Entry(
     F_crypto,
-    bd=B_NONE,
-    bg=WHITE,
-    disabledbackground=BUTTON,
-    fg=BLACK,
+    bd=Bd.NONE,
+    bg=Color.WHITE,
+    disabledbackground=Color.BUTTON,
+    fg=Color.BLACK,
     relief=tk.FLAT,
     show=ENTRY_SHOW_CHAR,
     state=tk.DISABLED,
     takefocus=True,
     validate='key',
-    vcmd=Name_Vcmd[X_ciphers.get()],
+    vcmd=namevcmd[X_ciphers.get()],
 )
 
-E_key.bind(V_EVENT_PASTE, lambda e: 'break')
+E_key.bind(VEvent.PASTE, lambda e: 'break')
 
 E_key.pack_configure(
     expand=True, fill=tk.BOTH, ipady=IY, padx=PX, pady=PY, side=tk.TOP
@@ -1226,9 +1235,9 @@ E_key.pack_configure(
 ##############
 F_lsb = tk.LabelFrame(
     frame,
-    bd=B_THIN,
-    bg=BLACK,
-    fg=WHITE,
+    bd=Bd.THIN,
+    bg=Color.BLACK,
+    fg=Color.WHITE,
     labelanchor=tk.S,
     relief=tk.RIDGE,
     text='LSB',
@@ -1244,8 +1253,8 @@ F_lsb.grid_configure(
 # LSB Scales #
 ##############
 scales = [
-    tk.Scale(F_lsb, fg=BLACK, from_=B, to=0, troughcolor=color)
-    for color in (RED, GREEN, BLUE)
+    tk.Scale(F_lsb, fg=Color.BLACK, from_=B, to=0, troughcolor=color)
+    for color in (Color.RED, Color.GREEN, Color.BLUE)
 ]
 
 possibilities = [
@@ -1255,7 +1264,7 @@ possibilities = [
 for scale in scales:
     scale.set(1)  # Do not change the position of this line!
     scale.configure(
-        bd=B_THIN,
+        bd=Bd.THIN,
         relief=tk.FLAT,
         sliderlength=50,
         sliderrelief=tk.RAISED,
@@ -1275,9 +1284,9 @@ information = string.Template('${used}+${left}=${limit}')
 
 F_book = tk.LabelFrame(
     frame,
-    bd=B_THIN,
-    bg=BLACK,
-    fg=WHITE,
+    bd=Bd.THIN,
+    bg=Color.BLACK,
+    fg=Color.WHITE,
     labelanchor=tk.SE,
     relief=tk.RIDGE,
     text=information.substitute(mapping),
@@ -1292,7 +1301,7 @@ F_book.grid_configure(
 ##################
 # Stego Notebook #
 ##################
-notebook = {}
+tabs = {}
 
 N_stego = ttk.Notebook(
     F_book,
@@ -1306,9 +1315,9 @@ N_stego.pack_configure(
 for title in ['message', 'decoded']:
     tab = ScrolledText(
         N_stego,
-        bd=B_NONE,
-        bg=BUTTON,
-        fg=BLACK,
+        bd=Bd.NONE,
+        bg=Color.BUTTON,
+        fg=Color.BLACK,
         relief=tk.FLAT,
         state=tk.DISABLED,
         tabs=1,
@@ -1325,32 +1334,7 @@ for title in ['message', 'decoded']:
         sticky=tk.NSEW,
         text=title.capitalize(),
     )
-    notebook.update({title: tab})
-
-#################
-# Configuration #
-#################
-jason = Json(Path.configfile)
-
-cnf = collections.defaultdict(
-    lambda: tk.BooleanVar(value=False),
-    {key: tk.BooleanVar(value=value) for key, value in jason.load().items()}
-)
-
-
-######################
-# ... Scheduling ... #
-######################
-def schedule(ms: int) -> None:
-    """Periodic file existence check."""
-    output = Var_output.get()
-
-    B_show['state'] = tk.NORMAL if os.path.exists(output) else tk.DISABLED
-
-    root.after(ms, schedule, ms)
-
-
-schedule(250)
+    tabs.update({title: tab})
 
 
 def start() -> None:
@@ -1360,6 +1344,11 @@ def start() -> None:
 
 def main() -> None:
     """Entry point."""
+    # Turn matching warnings into exceptions
+    warnings.simplefilter('error', Image.DecompressionBombWarning)
+
+    schedule(250)
+
     start()
 
 

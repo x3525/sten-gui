@@ -1,13 +1,12 @@
 """General utilities."""
 
 import os
-import string
 
 
-def nonascii(chars: str) -> str:
-    """Get the first non-ASCII character from the given characters, if any."""
+def nonalphabet(chars: str, alphabet: str) -> str:
+    """Get the first non-alphabet character from the given `chars`, if any."""
     for char in chars:
-        if char not in string.printable:
+        if char not in alphabet:
             return char
     return ''
 

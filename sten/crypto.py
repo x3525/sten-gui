@@ -1,5 +1,6 @@
 """Ciphers."""
 
+import enum
 import math
 import operator
 import re
@@ -16,26 +17,32 @@ from sten.error import CryptoExceptionGroup
 ALPHABET = string.printable
 ALPHABET_LENGTH = len(ALPHABET)
 
-#####################
-# Custom Type Hints #
-#####################
-TArr = NDArray[np.int32]
-TJob = Literal['+', '-']
-TOrd = Literal['i', 'j']
-TVCMDCode = Literal['%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W']
 
-####################
-# Validate Actions #
-####################
-DELETE = '0'
-INSERT = '1'
+class T(enum.Enum):
+    """Custom type hints."""
+
+    ARR_ND_I = NDArray[np.int32]
+    JOB = Literal['+', '-']
+    ORD = Literal['i', 'j']
+    VCMD_CODE = Literal['%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W']
+
+
+class Action(str, enum.Enum):
+    """Validate command actions.
+
+    https://www.tcl.tk/man/tcl/TkCmd/entry.html#M16
+    """
+
+    FOCUS = '-1'
+    DELETE = '0'
+    INSERT = '1'
 
 
 class Cipher(ABC):
     """Abstract base class for cipher classes."""
 
     name: str
-    code: tuple[TVCMDCode, TVCMDCode]
+    code: tuple[T.VCMD_CODE, T.VCMD_CODE]
 
     def __init__(self, key: Any, txt: str = '') -> None:
         self._key = key
@@ -61,9 +68,8 @@ class Cipher(ABC):
 
     @staticmethod
     @abstractmethod
-    def validate(action: TVCMDCode, data: TVCMDCode) -> bool:
+    def validate(action: T.VCMD_CODE, data: T.VCMD_CODE) -> bool:
         """Validate command."""
-        # https://www.tcl.tk/man/tcl/TkCmd/entry.html#M16
 
     @abstractmethod
     def encrypt(self) -> str:
@@ -84,7 +90,7 @@ class NotACipher(Cipher):
         super().__init__(key, txt)
 
     @staticmethod
-    def validate(action: TVCMDCode, data: TVCMDCode) -> bool:
+    def validate(action: T.VCMD_CODE, data: T.VCMD_CODE) -> bool:
         return False
 
     def encrypt(self) -> str:
@@ -107,8 +113,8 @@ class Caesar(Cipher):
             raise CryptoExceptionGroup('Key error. Shift value is equal to 0.')
 
     @staticmethod
-    def validate(action: TVCMDCode, data: TVCMDCode) -> bool:
-        return (action == DELETE) or data.isdigit()
+    def validate(action: T.VCMD_CODE, data: T.VCMD_CODE) -> bool:
+        return (action == Action.DELETE) or data.isdigit()
 
     def encrypt(self) -> str:
         return self._do('+')
@@ -116,7 +122,7 @@ class Caesar(Cipher):
     def decrypt(self) -> str:
         return self._do('-')
 
-    def _do(self, job: TJob) -> str:
+    def _do(self, job: T.JOB) -> str:
         """Encrypt/decrypt."""
         jobs = {
             '+': operator.add,
@@ -163,11 +169,11 @@ class Hill(Cipher):
         self._inv = pow(determinant, -1, ALPHABET_LENGTH)
 
     @staticmethod
-    def validate(action: TVCMDCode, data: TVCMDCode) -> bool:
-        return (action == DELETE) or (data in ALPHABET)
+    def validate(action: T.VCMD_CODE, data: T.VCMD_CODE) -> bool:
+        return (action == Action.DELETE) or (data in ALPHABET)
 
     @staticmethod
-    def _fill(values: str, shape: tuple[int, int], order: TOrd) -> TArr:
+    def _fill(values: str, shape: tuple[int, int], order: T.ORD) -> T.ARR_ND_I:
         """Create a new matrix and fill it."""
         orders = {
             'i': lambda *given: given,
@@ -191,7 +197,7 @@ class Hill(Cipher):
 
         return matrix
 
-    def _multiply(self, matrix: NDArray) -> TArr:
+    def _multiply(self, matrix: NDArray) -> T.ARR_ND_I:
         """Multiply the given matrix by the column vectors."""
         col = math.ceil(len(self.txt) / self._row)
 
@@ -221,8 +227,8 @@ class Scytale(Cipher):
         super().__init__(int(key), txt)
 
     @staticmethod
-    def validate(action: TVCMDCode, data: TVCMDCode) -> bool:
-        return (action == DELETE) or bool(re.match(r'^[1-9]\d*$', data))
+    def validate(action: T.VCMD_CODE, data: T.VCMD_CODE) -> bool:
+        return (action == Action.DELETE) or bool(re.match(r'^[1-9]\d*$', data))
 
     def encrypt(self) -> str:
         return ''.join(self.txt[i::self.key] for i in range(self.key))
@@ -255,8 +261,8 @@ class Vigenere(Cipher):
         super().__init__(key, txt)
 
     @staticmethod
-    def validate(action: TVCMDCode, data: TVCMDCode) -> bool:
-        return (action == DELETE) or (data in ALPHABET)
+    def validate(action: T.VCMD_CODE, data: T.VCMD_CODE) -> bool:
+        return (action == Action.DELETE) or (data in ALPHABET)
 
     def encrypt(self) -> str:
         return self._do('+')
@@ -264,7 +270,7 @@ class Vigenere(Cipher):
     def decrypt(self) -> str:
         return self._do('-')
 
-    def _do(self, job: TJob) -> str:
+    def _do(self, job: T.JOB) -> str:
         """Encrypt/decrypt."""
         jobs = {
             '+': operator.add,
