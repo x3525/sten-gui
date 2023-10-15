@@ -24,7 +24,7 @@ classifiers = [
 ]
 dynamic = ['dependencies', 'version']
 
-[project.scripts]
+[project.gui-scripts]
 sten = 'sten.__main__:main'
 
 [tool.setuptools]
