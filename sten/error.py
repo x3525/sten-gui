@@ -1,9 +1,9 @@
 """Custom exceptions."""
 
 
-class StenException(Exception):
-    """Base class for all other Sten exceptions."""
+class StenError(Exception):
+    """Base class for all Sten exceptions."""
 
 
-class CryptoExceptionGroup(StenException):
+class CryptoErrorGroup(StenError):
     """A combination of multiple crypto exceptions."""

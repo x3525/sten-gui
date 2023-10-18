@@ -11,6 +11,17 @@ class StrEnum(str, enum.Enum):
         return self.value
 
 
+class Action(StrEnum):
+    """Validate command actions.
+
+    https://www.tcl.tk/man/tcl/TkCmd/entry.html#M16
+    """
+
+    FOCUS = '-1'
+    DELETE = '0'
+    INSERT = '1'
+
+
 class Bd(StrEnum):
     """Border width enumeration."""
 

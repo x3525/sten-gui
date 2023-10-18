@@ -12,7 +12,8 @@ from typing import Any, Literal
 import numpy as np
 from numpy.typing import NDArray
 
-from sten.error import CryptoExceptionGroup
+from sten.data import Action
+from sten.error import CryptoErrorGroup
 
 ALPHABET = string.printable
 ALPHABET_LENGTH = len(ALPHABET)
@@ -25,17 +26,6 @@ class T(enum.Enum):
     JOB = Literal['+', '-']
     ORD = Literal['i', 'j']
     VCMD_CODE = Literal['%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W']
-
-
-class Action(str, enum.Enum):
-    """Validate command actions.
-
-    https://www.tcl.tk/man/tcl/TkCmd/entry.html#M16
-    """
-
-    FOCUS = '-1'
-    DELETE = '0'
-    INSERT = '1'
 
 
 class Cipher(ABC):
@@ -68,7 +58,7 @@ class Cipher(ABC):
 
     @staticmethod
     @abstractmethod
-    def validate(action: T.VCMD_CODE, data: T.VCMD_CODE) -> bool:
+    def validate(action: str, data: str) -> bool:
         """Validate command."""
 
     @abstractmethod
@@ -90,7 +80,7 @@ class NotACipher(Cipher):
         super().__init__(key, txt)
 
     @staticmethod
-    def validate(action: T.VCMD_CODE, data: T.VCMD_CODE) -> bool:
+    def validate(action: str, data: str) -> bool:
         return False
 
     def encrypt(self) -> str:
@@ -110,10 +100,10 @@ class Caesar(Cipher):
         super().__init__(int(key), txt)
 
         if (self.key % ALPHABET_LENGTH) == 0:
-            raise CryptoExceptionGroup('Key error. Shift value is equal to 0.')
+            raise CryptoErrorGroup('Key error. Shift value is equal to 0.')
 
     @staticmethod
-    def validate(action: T.VCMD_CODE, data: T.VCMD_CODE) -> bool:
+    def validate(action: str, data: str) -> bool:
         return (action == Action.DELETE) or data.isdigit()
 
     def encrypt(self) -> str:
@@ -156,9 +146,9 @@ class Hill(Cipher):
         determinant = round(np.linalg.det(self.key))
 
         if determinant == 0:
-            raise CryptoExceptionGroup('Key matrix is not invertible.')
+            raise CryptoErrorGroup('Key matrix is not invertible.')
         if math.gcd(determinant, ALPHABET_LENGTH) != 1:
-            raise CryptoExceptionGroup(
+            raise CryptoErrorGroup(
                 'Key determinant and alphabet length are not co-prime.'
             )
 
@@ -169,8 +159,14 @@ class Hill(Cipher):
         self._inv = pow(determinant, -1, ALPHABET_LENGTH)
 
     @staticmethod
-    def validate(action: T.VCMD_CODE, data: T.VCMD_CODE) -> bool:
+    def validate(action: str, data: str) -> bool:
         return (action == Action.DELETE) or (data in ALPHABET)
+
+    def encrypt(self) -> str:
+        return self._do(self.key)
+
+    def decrypt(self) -> str:
+        return self._do(np.array(np.around(self._adj * self._inv)))
 
     @staticmethod
     def _fill(values: str, shape: tuple[int, int], order: T.ORD) -> T.ARR_ND_I:
@@ -197,8 +193,8 @@ class Hill(Cipher):
 
         return matrix
 
-    def _multiply(self, matrix: NDArray) -> T.ARR_ND_I:
-        """Multiply the given matrix by the column vectors."""
+    def _do(self, matrix: NDArray) -> str:
+        """Encrypt/decrypt."""
         col = math.ceil(len(self.txt) / self._row)
 
         vectors = self._fill(self.txt, shape=(self._row, col), order='j')
@@ -206,15 +202,9 @@ class Hill(Cipher):
         multiplied = np.matmul(matrix.astype(int), vectors)
         transposed = np.transpose(multiplied)
 
-        return np.concatenate(transposed) % ALPHABET_LENGTH
-
-    def encrypt(self) -> str:
-        return ''.join(ALPHABET[i] for i in self._multiply(self.key))
-
-    def decrypt(self) -> str:
-        inverted = np.array(np.around(self._adj * self._inv))
-
-        return ''.join(ALPHABET[i] for i in self._multiply(inverted))
+        return ''.join(
+            ALPHABET[i] for i in (np.concatenate(transposed) % ALPHABET_LENGTH)
+        )
 
 
 class Scytale(Cipher):
@@ -227,7 +217,7 @@ class Scytale(Cipher):
         super().__init__(int(key), txt)
 
     @staticmethod
-    def validate(action: T.VCMD_CODE, data: T.VCMD_CODE) -> bool:
+    def validate(action: str, data: str) -> bool:
         return (action == Action.DELETE) or bool(re.match(r'^[1-9]\d*$', data))
 
     def encrypt(self) -> str:
@@ -261,7 +251,7 @@ class Vigenere(Cipher):
         super().__init__(key, txt)
 
     @staticmethod
-    def validate(action: T.VCMD_CODE, data: T.VCMD_CODE) -> bool:
+    def validate(action: str, data: str) -> bool:
         return (action == Action.DELETE) or (data in ALPHABET)
 
     def encrypt(self) -> str:

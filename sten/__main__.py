@@ -23,12 +23,13 @@ import math
 import os
 import random
 import string
-import subprocess as sp  # nosec
 import sys
 import tkinter as tk
 import tkinter.filedialog as fd
 import tkinter.messagebox as mb
 import traceback
+import urllib.error
+import urllib.request
 import warnings
 import webbrowser
 from contextlib import suppress
@@ -37,8 +38,6 @@ from tkinter import ttk
 from tkinter.font import Font
 from tkinter.scrolledtext import ScrolledText
 from typing import NoReturn, Optional
-from urllib.error import URLError
-from urllib.request import urlopen
 
 import defusedxml.ElementTree as ET  # type: ignore
 import numpy as np
@@ -50,7 +49,7 @@ from sten.config import Json
 from sten.consts import *
 from sten.crypto import ALPHABET, Hill, ciphers
 from sten.data import Bd, Color, FilePath, Hotkey, Url, VEvent
-from sten.error import CryptoExceptionGroup
+from sten.error import CryptoErrorGroup
 from sten.icons import *
 from sten.utils import nonalphabet, splitext
 
@@ -95,8 +94,8 @@ def openasfile(event: tk.Event) -> Optional[str]:
 
         if extension.casefold() not in EXTENSIONS_PICTURE:
             retry = mb.askretrycancel(
-                message=f'Not a valid extension: {extension}',
-                detail=f'Valid extensions: {EXTENSIONS_PICTURE_PRETTY}',
+                message=f'Not a valid file extension: {extension}',
+                detail=f'Valid file extensions: {EXTENSIONS_PICTURE_PRETTY}',
             )
             continue
 
@@ -116,8 +115,8 @@ def openasfile(event: tk.Event) -> Optional[str]:
 
         if mode not in MODES_PICTURE:
             retry = mb.askretrycancel(
-                message=f'Mode not supported: {mode}',
-                detail=f'Supported modes: {MODES_PICTURE_PRETTY}',
+                message=f'File mode is not supported: {mode}',
+                detail=f'Supported file modes: {MODES_PICTURE_PRETTY}',
             )
             continue
 
@@ -156,10 +155,10 @@ def openasfile(event: tk.Event) -> Optional[str]:
     return 'break'  # No more event processing for virtual event "OPEN_FILE"
 
 
-def show(path: str) -> None:
-    """Show a file."""
+def showfile() -> None:
+    """Show a previously created stego-object."""
     with suppress(OSError):
-        os.startfile(path, operation='open')  # nosec
+        os.startfile(Var_output.get(), operation='open')  # nosec
 
 
 def encode(event: tk.Event) -> None:
@@ -183,7 +182,7 @@ def encode(event: tk.Event) -> None:
 
     try:
         cipher = ciphers[name](key, message)
-    except CryptoExceptionGroup as err:
+    except CryptoErrorGroup as err:
         mb.showerror(message=str(err))
         return
 
@@ -220,8 +219,8 @@ def encode(event: tk.Event) -> None:
 
     if extension.casefold() not in EXTENSIONS_PICTURE:
         mb.showerror(
-            message=f'Not a valid extension: {extension}',
-            detail=f'Valid extensions: {EXTENSIONS_PICTURE_PRETTY}',
+            message=f'Not a valid file extension: {extension}',
+            detail=f'Valid file extensions: {EXTENSIONS_PICTURE_PRETTY}',
         )
         return
 
@@ -280,7 +279,7 @@ def decode(event: tk.Event) -> None:
 
     try:
         cipher = ciphers[name](key)
-    except CryptoExceptionGroup as err:
+    except CryptoErrorGroup as err:
         mb.showerror(message=str(err))
         return
 
@@ -343,9 +342,9 @@ def preferences(event: tk.Event) -> None:
 
     toplevel.grab_set()  # Direct all events to this Toplevel
 
-    toplevel.wm_attributes('-topmost', 1)
-
     toplevel.pack_propagate(True)
+
+    toplevel.wm_attributes('-topmost', 1)
 
     toplevel.wm_title('Preferences')
 
@@ -372,12 +371,11 @@ def properties() -> None:
     mb.showinfo(message='\n'.join(getattr(Picture, 'properties', [])))
 
 
-def close(ask: bool = True) -> None:
+def close() -> None:
     """Save preferences and destroy the main window."""
-    if ask:
-        if cnf['ConfirmExit'].get():
-            if not mb.askokcancel(message='Exit?'):
-                return
+    if cnf['ConfirmExit'].get():
+        if not mb.askokcancel(message='Are you sure you want to exit?'):
+            return
 
     jason.dump({key: variable.get() for key, variable in cnf.items()})
 
@@ -421,50 +419,19 @@ def transparent() -> None:
     root.wm_attributes('-alpha', 1.5 - alpha)
 
 
-def checkandupdate() -> None:
-    """Check for program updates, optionally update to the latest version."""
+def check_for_updates() -> None:
+    """Check for program updates."""
     try:
-        with urlopen(Url.RSS, timeout=9) as feed:  # nosec
+        with urllib.request.urlopen(Url.RSS, timeout=9) as feed:  # nosec
             latest = ET.fromstring(feed.read()).findtext('channel/item/title')
-    except URLError as err:
+    except urllib.error.URLError as err:
         mb.showerror(message=str(err))
-        return
-
-    if __version__ == latest:
-        mb.showinfo(message='Sten is up-to-date!')
-        return
-
-    if not mb.askyesno(
-            message='Sten is outdated. Update now?',
-            detail='PROGRAM WILL CLOSE',
-            icon=mb.WARNING,
-    ):
-        return
-
-    # No need to put quotes around the path (for this particular case)
-    file = sys.executable
-
-    parameters = '-m pip install -U project.sten'
-
-    close(False)  # Otherwise, [Error 5] Access is denied
-
-    try:
-        value = ctypes.windll.shell32.ShellExecuteW(
-            None, 'open', file, parameters, None, 1,  # SW_SHOWNORMAL
-        )
-        if int(value) > 32:
-            return
-    except AttributeError:
-        with suppress(FileNotFoundError, sp.CalledProcessError):
-            sp.run([file, *parameters.split()], check=True)  # nosec
-            return
-
-    mb.showerror(message='Something went wrong!')
+    else:
+        mb.showinfo(message=('Outdated.', 'All good!')[__version__ == latest])
 
 
 def activate(event: tk.Event) -> None:
     """When a file is opened, this method binds widgets to "F5" once."""
-    # Unbind to prevent reactivation
     root.bind(VEvent.OPEN_FILE, openasfile)
     root.bind(VEvent.OPEN_FILE, refresh, add='+')
 
@@ -613,7 +580,7 @@ sys.excepthook = exception
 #######################
 with suppress(AttributeError):
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('sten.s.c')
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('serce.sten')
 
 ################
 # /|\ Root /|\ #
@@ -669,7 +636,7 @@ jason = Json(FilePath.CONFIG)
 
 cnf = collections.defaultdict(
     lambda: tk.BooleanVar(value=False),
-    {key: tk.BooleanVar(value=value) for key, value in jason.load().items()}
+    {str(k): tk.BooleanVar(value=bool(v)) for k, v in jason.load().items()}
 )
 
 ########
@@ -687,7 +654,7 @@ M_file = tk.Menu(menu, tearoff=False)
 menu.add_cascade(label='File', menu=M_file, state=tk.NORMAL, underline=0)
 
 IMAGE_OPEN_FILE = tk.PhotoImage(data=IMAGE_DATA_OPEN_FILE)
-IMAGE_SHOW = tk.PhotoImage(data=IMAGE_DATA_SHOW)
+IMAGE_SHOW_FILE = tk.PhotoImage(data=IMAGE_DATA_SHOW_FILE)
 IMAGE_ENCODE = tk.PhotoImage(data=IMAGE_DATA_ENCODE)
 IMAGE_DECODE = tk.PhotoImage(data=IMAGE_DATA_DECODE)
 IMAGE_PREFERENCES = tk.PhotoImage(data=IMAGE_DATA_PREFERENCES)
@@ -740,7 +707,7 @@ M_file.add_command(
     command=lambda: root.event_generate(VEvent.PREFERENCES),
     compound=tk.LEFT,
     image=IMAGE_PREFERENCES,
-    label=(MENU_ITEM_INDEX_PREFERENCES := 'Preferences'),
+    label='Preferences',
     state=tk.NORMAL,
     underline=0,
 )
@@ -902,7 +869,7 @@ IMAGE_WEB_SITE = tk.PhotoImage(data=IMAGE_DATA_WEB_SITE)
 IMAGE_ABOUT = tk.PhotoImage(data=IMAGE_DATA_ABOUT)
 
 M_help.add_command(
-    command=checkandupdate,
+    command=check_for_updates,
     label='Check for Updates',
     state=tk.NORMAL,
     underline=10,
@@ -1112,10 +1079,10 @@ B_show = tk.Button(
     anchor=tk.CENTER,
     bd=Bd.WIDE,
     bg=Color.WHITE,
-    command=lambda: show(Var_output.get()),
+    command=showfile,
     compound=tk.LEFT,
     fg=Color.BLACK,
-    image=IMAGE_SHOW,
+    image=IMAGE_SHOW_FILE,
     relief=tk.FLAT,
     state=tk.DISABLED,
     takefocus=True,
@@ -1344,7 +1311,6 @@ def start() -> None:
 
 def main() -> None:
     """Entry point."""
-    # Turn matching warnings into exceptions
     warnings.simplefilter('error', Image.DecompressionBombWarning)
 
     schedule(250)
