@@ -595,7 +595,7 @@ root.wm_protocol('WM_DELETE_WINDOW', close)
 
 root.wm_iconphoto(True, tk.PhotoImage(data=IMAGE_DATA_STEN))
 
-root.wm_title(f'Sten {__version__}')
+root.wm_title('Sten')
 
 SCREEN_W = root.winfo_screenwidth()
 SCREEN_H = root.winfo_screenheight()
@@ -887,7 +887,7 @@ M_help.add_command(
 )
 
 M_help.add_command(
-    command=lambda: mb.showinfo(message=__doc__),
+    command=lambda: mb.showinfo(title=__version__, message=__doc__),
     compound=tk.LEFT,
     image=IMAGE_ABOUT,
     label='About',
