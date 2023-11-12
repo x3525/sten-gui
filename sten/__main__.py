@@ -289,7 +289,7 @@ def decode(event: tk.Event) -> None:
         random.seed(seed)
         random.shuffle(pixels)
 
-    for bandlsb in possibilities if cnf['BruteLSB'].get() else (Glob.bandlsb,):
+    for bandlsb in possibilities if cnf['brutelsb'].get() else (Glob.bandlsb,):
         bits, message = '', ''
 
         for pix, (band, lsb) in product(pixels, bandlsb):
@@ -356,13 +356,13 @@ def preferences(event: tk.Event) -> None:
         toplevel,
         anchor=tk.W,
         text='Confirm before exiting the program',
-        variable=cnf['ConfirmExit'],
+        variable=cnf['confirmexit'],
     ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
     tk.Checkbutton(
         toplevel,
         anchor=tk.W,
         text='Use brute force technique to decode',
-        variable=cnf['BruteLSB'],
+        variable=cnf['brutelsb'],
     ).pack_configure(expand=True, fill=tk.BOTH, side=tk.TOP)
 
 
@@ -373,7 +373,7 @@ def properties() -> None:
 
 def close() -> None:
     """Save preferences and destroy the main window."""
-    if cnf['ConfirmExit'].get():
+    if cnf['confirmexit'].get():
         if not mb.askokcancel(message='Are you sure you want to exit?'):
             return
 
