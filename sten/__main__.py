@@ -1,20 +1,4 @@
-"""Sten — LSB-based image steganography tool.
-
-Copyright (C) 2023  Serhat Çelik
-
-Sten is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Sten is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Sten.  If not, see <https://www.gnu.org/licenses/>.
-"""
+"""Sten — LSB-based image steganography tool."""
 
 import collections
 import ctypes
@@ -580,7 +564,7 @@ sys.excepthook = exception
 #######################
 with suppress(AttributeError):
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('serce.sten')
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('sten.3525')
 
 ################
 # /|\ Root /|\ #
@@ -881,13 +865,13 @@ M_help.add_command(
     command=lambda: webbrowser.open(Url.WEBSITE, new=2),
     compound=tk.LEFT,
     image=IMAGE_WEB_SITE,
-    label='Web Site',
+    label='Website',
     state=tk.NORMAL,
     underline=0,
 )
 
 M_help.add_command(
-    command=lambda: mb.showinfo(title=__version__, message=__doc__),
+    command=lambda: mb.showinfo(message=__version__),
     compound=tk.LEFT,
     image=IMAGE_ABOUT,
     label='About',
