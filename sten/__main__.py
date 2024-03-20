@@ -141,7 +141,7 @@ def openasfile(event: tk.Event) -> Optional[str]:
 
 def showfile() -> None:
     """Show a previously created stego-object."""
-    with suppress(OSError):
+    with suppress(AttributeError, OSError):
         os.startfile(Var_output.get(), operation='open')  # nosec
 
 
